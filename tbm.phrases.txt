@@ -1,0 +1,75 @@
+"Phrases"
+{
+	"TBM Info"
+	{
+		"en"			"Round ended, checking teams."
+		"pl"			"Runda zakończona, sprawdzam drużyny."
+	}
+	"No move player"
+	{
+		"en"			"Can't transfer player,"
+		"pl"			"Nie mogę przenieść gracza,"
+	}
+	"need players win"
+	{
+		"en"			"need players in winning team."
+		"pl"			"potrzebuję graczy w drużynie wygrywającej."
+	}
+	"no valid target win"
+	{
+		"en"			"no valid target in winning team."
+		"pl"			"brak odpowiedniego celu w drużynie wygrywającej."
+	}
+	"No target"
+	{
+		"en"			"No change would improve team balancing."
+		"pl"			"Żadna zmiana nie poprawi zbalansowania sił."
+	}
+	"Transfer player"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"			"Transfering {1} to the {2}."
+		"pl"			"Przenoszę {1} do {2}."
+	}
+	"No switch players"
+	{
+		"en"			"Can't switch players,"
+		"pl"			"Nie mogę zamienić graczy,"
+	}
+	"need players"
+	{
+		"en"			"need players in each team."
+		"pl"			"potrzebuję graczy w obu drużynach."
+	}
+	"no valid targets"
+	{
+		"en"			"need valid targets in each team."
+		"pl"			"potrzebuję odpowiednich celów w obu drużynach."
+	}
+	"Switch players"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"			"Switching {1} with {2}."
+		"pl"			"Zamieniam {1} z {2}."
+	}
+	"Join the same team"
+	{
+		"en"			"Joining to the same team is not allowed!"
+		"pl"			"Dołączenie do tej samej drużyny jest zabronione!"
+	}
+	"Stay team"
+	{
+		"en"			"You have better stay in your current team!"
+		"pl"			"Zostań w swojej aktualnej drużynie!"
+	}
+	"Max size join"
+	{
+		"en"			"Maximum team size prohibits team join."
+		"pl"			"Maksymalna wielkość drużyny zabrania dołączenia do niej."
+	}
+	"Max diff join"
+	{
+		"en"			"Maximum team size difference prohibits team join."
+		"pl"			"Maksymalna rożnica w wielkościach drużyn zabrania dołączenia do wybranej."
+	}
+}
