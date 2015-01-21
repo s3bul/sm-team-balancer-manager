@@ -1,2 +1,2 @@
-#Instalacja
+# Instalacja #
 Wrzuæ ca³y folder "sourcemod" do folderu "addons".
