@@ -309,10 +309,11 @@ TBMShowTeamPanel(client) {
 
 public Action:ShowTeamPanel(Handle:timer, any:serial) {
 	new client = GetClientFromSerial(serial);
+	CloseTimer(g_Players[client][EPPanelTimer]);
+
 	if(!client || g_Players[client][EPIsBot] || !IsClientInGame(client))
 		return;
 
-	CloseTimer(g_Players[client][EPPanelTimer]);
 	ShowVGUIPanel(client, "team");
 }
 
