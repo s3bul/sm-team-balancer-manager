@@ -4,6 +4,9 @@
 #include <convar>
 #include <cstrike>
 
+#include "../../../include/my_admin.inc"
+#include "../../../include/my_timers.inc"
+
 #define PLUGIN_VERSION "0.4"
 
 public Plugin:myinfo = {
