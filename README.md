@@ -16,4 +16,4 @@ Przyk³adowa struktura folderów
 				translations/
 					tbm.phrases.txt
 		include/
-			my_*.inc
+			*.inc
