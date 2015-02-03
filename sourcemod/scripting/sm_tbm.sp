@@ -4,8 +4,8 @@
 #include <convar>
 #include <cstrike>
 
-#include "../../../include/my_admin.inc"
-#include "../../../include/my_timers.inc"
+#include <my_admin>
+#include <my_timers>
 
 #define PLUGIN_VERSION "0.4"
 
