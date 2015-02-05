@@ -226,6 +226,7 @@ public OnClientDisconnect_Post(client) {
 	g_Wart[iMaxPlayers] = GetMaxClients();
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPIsBot] = false;
+	g_Players[client][EPPanelTimer] = INVALID_HANDLE;
 }
 
 public OnClientPutInServer(client) {
@@ -312,11 +313,10 @@ TBMShowTeamPanel(client) {
 
 public Action:ShowTeamPanel(Handle:timer, any:serial) {
 	new client = GetClientFromSerial(serial);
-	CloseTimer(g_Players[client][EPPanelTimer]);
-
 	if(!client || g_Players[client][EPIsBot] || !IsClientInGame(client))
 		return;
 
+	CloseTimer(g_Players[client][EPPanelTimer]);
 	ShowVGUIPanel(client, "team");
 }
 
