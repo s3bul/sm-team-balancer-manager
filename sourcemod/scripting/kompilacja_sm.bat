@@ -17,13 +17,13 @@ set my_include=E:\Documents\pluginy\sm\include
 
 if not exist "%include%" ( echo Folder %include% nie istnieje & goto WYJSCIE )
 
-rem Miejsce gdzie zostan¥ wrzucone pliki .amxx
-rem Zostaw tak jak jest je˜li pliki .amxx maj¥ by† w tym samym folderze co pliki .sma
+rem Miejsce gdzie zostan¥ wrzucone pliki .smx
+rem Zostaw tak jak jest je˜li pliki .smx maj¥ by† w tym samym folderze co pliki .sp
 rem UWAGA! Na koäcu ˜cie¾ki zawsze musi by† dodany znak \
 rem . oznacza aktualny folder gdzie zostaˆ uruchomiony skrypt
 set output=..\plugins\
 
-rem Usuwanie starych log¢w oraz tworzenie folderu gdzie maj¥ by† wrzucone pliki .amxx
+rem Usuwanie starych log¢w oraz tworzenie folderu gdzie maj¥ by† wrzucone pliki .smx
 if exist logi.log del logi.log
 if "%output%" == ".\" (
 	goto KOMPILACJA
