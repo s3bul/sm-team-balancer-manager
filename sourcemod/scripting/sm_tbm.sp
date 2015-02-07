@@ -7,7 +7,7 @@
 #include <my_admin>
 #include <my_timers>
 
-#define PLUGIN_VERSION "0.4"
+#define PLUGIN_VERSION "0.5"
 
 public Plugin:myinfo = {
 	name				= "Team Balancer Manager",
