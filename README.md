@@ -1,10 +1,10 @@
-# Instalacja dla administratorów serwerów #
-Wrzuæ ca³y folder "sourcemod" do folderu "addons".
+# Instalacja dla administratorÃ³w serwerÃ³w #
+WrzuÄ‡ caÅ‚y folder "sourcemod" do folderu "addons".
 
-# Instalacja dla developerów (skrypterów) #
+# Instalacja dla developerÃ³w (skrypterÃ³w) #
 Do swojego folderu z pluginami sklonuj te repozytorium oraz [git@bitbucket.org:sebek/sm-my-includes.git](https://bitbucket.org/sebek/sm-my-includes).
 
-Przyk³adowa struktura folderów
+PrzykÅ‚adowa struktura folderÃ³w
 
 	Pluginy SM/
 		Team Balancer Manager/
