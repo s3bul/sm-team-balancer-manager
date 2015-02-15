@@ -2,7 +2,7 @@
 Wrzuć cały folder "sourcemod" do folderu "addons".
 
 # Instalacja dla developerów (skrypterów) #
-Do swojego folderu z pluginami sklonuj te repozytorium oraz [git@bitbucket.org:sebek/sm-my-includes.git](https://bitbucket.org/sebek/sm-my-includes).
+Do swojego folderu z pluginami sklonuj te repozytorium oraz [git@bitbucket.org:sebek/sm-my-includes.git](https://bitbucket.org/sebek/sm-my-includes) lub [git@github.com:s3bul/sm-my-includes.git](https://github.com/s3bul/sm-my-includes).
 
 Przykładowa struktura folderów
 
