@@ -67,6 +67,7 @@ enum ePlayerData {
 };
 
 enum eValues {
+	EngineVersion:eVersion,
 	bool:bEventsHooked,
 	bool:bMaxSizeTeam,
 	iRoundNumber,
@@ -133,6 +134,7 @@ public OnPluginStart() {
 
 	AddCommandListener(CommandJoinTeam, "jointeam");
 
+	g_Wart[eVersion] = GetEngineVersion();
 	g_Wart[iMaxPlayers] = MAXPLAYERS;
 }
 
