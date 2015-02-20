@@ -12,6 +12,8 @@ Przykładowa struktura folderów
 				plugins/
 					sm_tbm.smx
 				scripting/
+					include/
+						*.inc
 					sm_tbm.sp
 				translations/
 					tbm.phrases.txt
