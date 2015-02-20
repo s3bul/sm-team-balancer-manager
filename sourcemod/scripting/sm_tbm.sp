@@ -29,6 +29,7 @@ enum _:eCvars {
 	ECSwitchMin,
 	ECTransferType,
 	ECMultiPoints,
+	ECMultiMVP,
 	ECImmunitySwitch,
 	ECImmunityJoin,
 	ECImmunityFlags,
@@ -59,6 +60,7 @@ enum eTeamData {
 enum ePlayerData {
 	EPKills,
 	EPDeaths,
+	EPMVP,
 	Float:EPKDRatio,
 	Float:EPBlockTransfer,
 	EPTeam,
@@ -109,6 +111,8 @@ public OnPluginStart() {
 		CreateConVar("sm_tbm_transfer_type", "1", "x: Im więcej tym plugin będzie agresywniej reagował", FCVAR_PLUGIN, true, 1.0, true, 3.0));
 	AddConVar(g_ConVars[ECMultiPoints], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_points", "1", "x: Przez ile mnożyć punkty wygranych rund, itp.", FCVAR_PLUGIN, true, 0.5, true, 5.0));
+	AddConVar(g_ConVars[ECMultiMVP], ValueType_Float, OnConVarChange,
+		CreateConVar("sm_tbm_multi_mvp", "0.0", "Czy modyfikować KD graczy za uzyskane gwiazdki mvp? Im więcej, tym większa wartość KD.", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECImmunitySwitch], ValueType_Bool, OnConVarChange,
 		CreateConVar("sm_tbm_immunity_switch", "0", "1: Admini będą pomijani w działaniach TBM", FCVAR_PLUGIN, true, 0.0, true, 1.0));
 	AddConVar(g_ConVars[ECImmunityJoin], ValueType_Bool, OnConVarChange,
@@ -622,10 +626,11 @@ TeamConditions() {
 }
 
 GetKDInTeams() {
-	decl i, Float:newSum;
+	decl i, Float:fTmp, Float:sumMVP;
 	SetValueForTeams(ETKills, 0);
 	SetValueForTeams(ETDeaths, 0);
 	SetValueForTeamsF(ETSumKDRatio, 0.0);
+	sumMVP = float(GetMVPForPlayersAndSum());
 
 	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
 		if(g_Players[i][EPIsBot])
@@ -636,13 +641,33 @@ GetKDInTeams() {
 
 		g_Players[i][EPKDRatio] = float(g_Players[i][EPKills]) / FloatMax(float(g_Players[i][EPDeaths]), 0.5);
 
-		newSum = Float:g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] + Float:g_Players[i][EPKDRatio];
-		g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] = newSum;
+		if(Float:g_ConVars[ECMultiMVP][ConVarValue] > 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1) {
+			fTmp = Float:g_Players[i][EPKDRatio] * (float(g_Players[i][EPMVP])/sumMVP + Float:g_ConVars[ECMultiMVP][ConVarValue]);
+			g_Players[i][EPKDRatio] = fTmp;
+		}
+
+		fTmp = Float:g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] + Float:g_Players[i][EPKDRatio];
+		g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] = fTmp;
 	}
 	g_Teams[CS_TEAM_NONE][ETKDRatio] = float(g_Teams[CS_TEAM_NONE][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_NONE][ETDeaths]), 0.5);
 	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = float(g_Teams[CS_TEAM_SPECTATOR][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.5);
 	g_Teams[CS_TEAM_T][ETKDRatio] = float(g_Teams[CS_TEAM_T][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_T][ETDeaths]), 0.5);
 	g_Teams[CS_TEAM_CT][ETKDRatio] = float(g_Teams[CS_TEAM_CT][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_CT][ETDeaths]), 0.5);
+}
+
+GetMVPForPlayersAndSum() {
+	if(g_Wart[eVersion] != Engine_CSGO) {
+		return 0;
+	}
+	new sum, i;
+	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
+		if(g_Players[i][EPIsBot] || !IsClientInGame(i))
+			continue;
+
+		g_Players[i][EPMVP] = CS_GetMVPCount(i);
+		sum += g_Players[i][EPMVP];
+	}
+	return sum;
 }
 
 GetCountPlayersInTeams() {
