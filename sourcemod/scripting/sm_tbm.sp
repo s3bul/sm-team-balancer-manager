@@ -626,11 +626,12 @@ TeamConditions() {
 }
 
 GetKDInTeams() {
-	decl i, Float:fTmp, Float:sumMVP;
+	decl i, Float:fTmp, Float:sumMVP, bool:checkMVP;
 	SetValueForTeams(ETKills, 0);
 	SetValueForTeams(ETDeaths, 0);
 	SetValueForTeamsF(ETSumKDRatio, 0.0);
 	sumMVP = float(GetMVPForPlayersAndSum());
+	checkMVP = bool:(Float:g_ConVars[ECMultiMVP][ConVarValue] > 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1);
 
 	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
 		if(g_Players[i][EPIsBot])
@@ -641,7 +642,7 @@ GetKDInTeams() {
 
 		g_Players[i][EPKDRatio] = float(g_Players[i][EPKills]) / FloatMax(float(g_Players[i][EPDeaths]), 0.5);
 
-		if(Float:g_ConVars[ECMultiMVP][ConVarValue] > 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1) {
+		if(checkMVP) {
 			fTmp = Float:g_Players[i][EPKDRatio] * (float(g_Players[i][EPMVP])/sumMVP + Float:g_ConVars[ECMultiMVP][ConVarValue]);
 			g_Players[i][EPKDRatio] = fTmp;
 		}
