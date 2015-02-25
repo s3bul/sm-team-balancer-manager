@@ -631,7 +631,7 @@ GetKDInTeams() {
 	SetValueForTeams(ETDeaths, 0);
 	SetValueForTeamsF(ETSumKDRatio, 0.0);
 	sumMVP = float(GetMVPForPlayersAndSum());
-	checkMVP = bool:(Float:g_ConVars[ECMultiMVP][ConVarValue] > 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1);
+	checkMVP = bool:(Float:g_ConVars[ECMultiMVP][ConVarValue] > 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1.0);
 
 	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
 		if(g_Players[i][EPIsBot])
@@ -674,7 +674,7 @@ GetMVPForPlayersAndSum() {
 GetCountPlayersInTeams() {
 	SetValueForTeams(ETSize, 0);
 	SetValueForTeams(ETBotSize, 0);
-	new i, num = 0;
+	new i, num;
 	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
 		if(!IsClientInGame(i))
 			continue;
@@ -701,5 +701,5 @@ SetValueForTeams(eTeamData:eData, iVal) {
 }
 
 SetValueForTeamsF(eTeamData:eData, Float:fVal) {
-	g_Teams[CS_TEAM_NONE][eData] = g_Teams[CS_TEAM_SPECTATOR][eData] = g_Teams[CS_TEAM_T][eData] = g_Teams[CS_TEAM_CT][eData] = _:fVal;
+	g_Teams[CS_TEAM_NONE][eData] = g_Teams[CS_TEAM_SPECTATOR][eData] = g_Teams[CS_TEAM_T][eData] = g_Teams[CS_TEAM_CT][eData] = any:fVal;
 }
