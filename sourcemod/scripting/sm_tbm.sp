@@ -65,6 +65,7 @@ enum ePlayerData {
 	Float:EPBlockTransfer,
 	EPTeam,
 	bool:EPIsBot,
+	bool:EPIsConnected,
 	Handle:EPPanelTimer
 };
 
@@ -232,6 +233,7 @@ public OnClientDisconnect_Post(client) {
 	g_Wart[iMaxPlayers] = GetMaxClients();
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPIsBot] = false;
+	g_Players[client][EPIsConnected] = false;
 	g_Players[client][EPPanelTimer] = INVALID_HANDLE;
 }
 
@@ -240,6 +242,7 @@ public OnClientPutInServer(client) {
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerTime][ConVarValue];
 	g_Players[client][EPIsBot] = IsFakeClient(client);
+	g_Players[client][EPIsConnected] = true;
 }
 
 public Action:CommandJoinTeam(client, const String:command[], argc) {
@@ -319,7 +322,7 @@ TBMShowTeamPanel(client) {
 
 public Action:ShowTeamPanel(Handle:timer, any:serial) {
 	new client = GetClientFromSerial(serial);
-	if(!client || g_Players[client][EPIsBot] || !IsClientInGame(client))
+	if(!client || !g_Players[client][EPIsConnected] || g_Players[client][EPIsBot] || !IsClientInGame(client))
 		return;
 
 	CloseTimer(g_Players[client][EPPanelTimer]);
@@ -333,9 +336,9 @@ public EventPlayerTeam(Handle:event, const String:name[], bool:dontBroadcast) {
 
 public EventPlayerDeath(Handle:event, const String:name[], bool:dontBroadcast) {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(client && IsClientInGame(client)) g_Players[client][EPDeaths] = GetClientDeaths(client);
+	if(client && g_Players[client][EPIsConnected] && IsClientInGame(client)) g_Players[client][EPDeaths] = GetClientDeaths(client);
 	new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-	if(attacker && IsClientInGame(attacker)) g_Players[attacker][EPKills] = GetClientFrags(attacker);
+	if(attacker && g_Players[attacker][EPIsConnected] && IsClientInGame(attacker)) g_Players[attacker][EPKills] = GetClientFrags(attacker);
 }
 
 public EventRoundEnd(Handle:event, const String:name[], bool:dontBroadcast) {
@@ -432,7 +435,7 @@ TBMPrintToChatAll(const String:sMessage[], any:...) {
 	VFormat(sTxt, iLen, sMessage, 2);
 
 	for(new i=1; i<=g_Wart[iMaxPlayers]; ++i) {
-		if(g_Players[i][EPIsBot] || !IsClientInGame(i))
+		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
 			continue;
 
 		PrintToChat(i, "[TBM] %s", sTxt);
@@ -474,7 +477,7 @@ doTransfer() {
 			}
 		}
 	}
-	if(!winner || !IsClientInGame(winner)) {
+	if(!winner || !g_Players[winner][EPIsConnected] || !IsClientInGame(winner)) {
 		TBMPrintToChatAll("%t", "No target");
 		return;
 	}
@@ -517,7 +520,7 @@ doSwitch() {
 			}
 		}
 	}
-	if(!winner || !loser || !IsClientInGame(winner) || !IsClientInGame(loser)) {
+	if(!winner || !loser || !g_Players[winner][EPIsConnected] || !g_Players[loser][EPIsConnected] || !IsClientInGame(winner) || !IsClientInGame(loser)) {
 		TBMPrintToChatAll("%t", "No target");
 		return;
 	}
@@ -548,7 +551,7 @@ ClearGame() {
 GetValidTargets(team, bool:deadonly = false) {
 	new num, i, Float:fGameTime = GetEngineTime();
 	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
-		if(g_Players[i][EPIsBot]) continue;
+		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot]) continue;
 		if(g_Players[i][EPTeam] != team) continue;
 		if(Float:g_Players[i][EPBlockTransfer] > fGameTime) continue;
 		if(!IsClientInGame(i)) continue;
@@ -634,7 +637,7 @@ GetKDInTeams() {
 	checkMVP = bool:(Float:g_ConVars[ECMultiMVP][ConVarValue] > 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1.0);
 
 	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
-		if(g_Players[i][EPIsBot])
+		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot])
 			continue;
 
 		g_Teams[g_Players[i][EPTeam]][ETKills] += g_Players[i][EPKills];
@@ -662,7 +665,7 @@ GetMVPForPlayersAndSum() {
 	}
 	new sum, i;
 	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
-		if(g_Players[i][EPIsBot] || !IsClientInGame(i))
+		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
 			continue;
 
 		g_Players[i][EPMVP] = CS_GetMVPCount(i);
@@ -676,7 +679,7 @@ GetCountPlayersInTeams() {
 	SetValueForTeams(ETBotSize, 0);
 	new i, num;
 	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
-		if(!IsClientInGame(i))
+		if(!g_Players[i][EPIsConnected] || !IsClientInGame(i))
 			continue;
 
 		++g_Teams[g_Players[i][EPTeam]][ETBotSize];
