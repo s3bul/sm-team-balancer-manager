@@ -1,5 +1,5 @@
 # Instalacja dla administratorów serwerów #
-Wrzuć z [tej paczki](https://bitbucket.org/sebek/sm-team-balancer-manager/get/master.zip) cały folder "sourcemod" do folderu "addons".
+Wrzuć z [tej#1](https://bitbucket.org/sebek/sm-team-balancer-manager/get/master.zip) lub [tej#2](https://github.com/s3bul/sm-team-balancer-manager/archive/master.zip) paczki cały folder "sourcemod" do folderu "addons".
 
 # Instalacja dla developerów (skrypterów) #
 Do swojego folderu z pluginami sklonuj te repozytorium oraz [git@bitbucket.org:sebek/sm-my-includes.git](https://bitbucket.org/sebek/sm-my-includes) lub [git@github.com:s3bul/sm-my-includes.git](https://github.com/s3bul/sm-my-includes).
