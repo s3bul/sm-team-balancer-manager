@@ -4,6 +4,13 @@ title Kompilacja plik¢w .sp
 
 cls
 
+rem Parametry
+set notpause=0
+if "%~1"=="-np" (
+	set notpause=1
+	shift
+)
+
 rem —cie¾ka do kompilatora
 set compiler=D:\Programy\Source Mod\1.6.3\addons\sourcemod\scripting\spcomp.exe
 
@@ -71,4 +78,4 @@ echo Komunikaty z kompilacji znajduj¥ si© w pliku logi.log
 :WYJSCIE
 
 echo.
-pause
+if %notpause% == 0 pause
