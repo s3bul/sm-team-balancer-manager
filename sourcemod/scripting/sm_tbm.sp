@@ -113,7 +113,7 @@ public OnPluginStart() {
 	AddConVar(g_ConVars[ECMultiPoints], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_points", "1", "x: Przez ile mnożyć punkty wygranych rund, itp.", FCVAR_PLUGIN, true, 0.5, true, 5.0));
 	AddConVar(g_ConVars[ECMultiMVP], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_mvp", "0.0", "x >= 0: Jak bardzo zwiększać KD graczy za uzyskane gwiazdki mvp; -1: Brak bonusu za mvp", FCVAR_PLUGIN, true, -1.0));
+		CreateConVar("sm_tbm_multi_mvp", "0.0", "x >= 0: Jak bardzo zwiększać KD graczy za uzyskane gwiazdki mvp; -1: Brak bonusu za mvp; Tylko CS:GO", FCVAR_PLUGIN, true, -1.0));
 	AddConVar(g_ConVars[ECImmunitySwitch], ValueType_Bool, OnConVarChange,
 		CreateConVar("sm_tbm_immunity_switch", "0", "1: Admini będą pomijani w działaniach TBM", FCVAR_PLUGIN, true, 0.0, true, 1.0));
 	AddConVar(g_ConVars[ECImmunityJoin], ValueType_Bool, OnConVarChange,
