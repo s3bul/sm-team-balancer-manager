@@ -674,7 +674,7 @@ Float:GetKillsToKD(kills) {
 	if(Float:g_ConVars[ECMultiKills][ConVarValue] > 1.0) {
 		return float(kills) * Float:g_ConVars[ECMultiKills][ConVarValue];
 	}
-	return float(g_Players[client][EPKills]);
+	return float(kills);
 }
 
 Float:GetAssistsToKD(assists) {
