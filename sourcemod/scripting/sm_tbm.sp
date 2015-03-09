@@ -59,6 +59,7 @@ enum eTeamData {
 
 enum ePlayerData {
 	EPKills,
+	EPAssists,
 	EPDeaths,
 	EPMVP,
 	Float:EPKDRatio,
@@ -339,6 +340,8 @@ public EventPlayerDeath(Handle:event, const String:name[], bool:dontBroadcast) {
 	if(client && g_Players[client][EPIsConnected] && IsClientInGame(client)) g_Players[client][EPDeaths] = GetClientDeaths(client);
 	new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
 	if(attacker && g_Players[attacker][EPIsConnected] && IsClientInGame(attacker)) g_Players[attacker][EPKills] = GetClientFrags(attacker);
+	new assister = GetClientOfUserId(GetEventInt(event, "assister"));
+	if(assister && g_Players[assister][EPIsConnected] && IsClientInGame(assister)) g_Players[assister][EPAssists] = CS_GetClientAssists(assister);
 }
 
 public EventRoundEnd(Handle:event, const String:name[], bool:dontBroadcast) {
