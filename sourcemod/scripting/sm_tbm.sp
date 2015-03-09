@@ -654,7 +654,7 @@ GetKDInTeams() {
 		g_Teams[g_Players[i][EPTeam]][ETKills] += g_Players[i][EPKills];
 		g_Teams[g_Players[i][EPTeam]][ETDeaths] += g_Players[i][EPDeaths];
 
-		g_Players[i][EPKDRatio] = (GetKillsToKD(i) + GetAssistsToKD(i)) / FloatMax(float(g_Players[i][EPDeaths]), 0.5);
+		g_Players[i][EPKDRatio] = (GetKillsToKD(g_Players[i][EPKills]) + GetAssistsToKD(g_Players[i][EPAssists])) / FloatMax(float(g_Players[i][EPDeaths]), 0.5);
 
 		if(checkMVP) {
 			fTmp = Float:g_Players[i][EPKDRatio] + Float:g_Players[i][EPKDRatio] * (float(g_Players[i][EPMVP])/sumMVP + Float:g_ConVars[ECMultiMVP][ConVarValue]);
@@ -670,19 +670,19 @@ GetKDInTeams() {
 	g_Teams[CS_TEAM_CT][ETKDRatio] = float(g_Teams[CS_TEAM_CT][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_CT][ETDeaths]), 0.5);
 }
 
-Float:GetKillsToKD(client) {
+Float:GetKillsToKD(kills) {
 	if(Float:g_ConVars[ECMultiKills][ConVarValue] > 1.0) {
-		return float(g_Players[client][EPKills]) * Float:g_ConVars[ECMultiKills][ConVarValue];
+		return float(kills) * Float:g_ConVars[ECMultiKills][ConVarValue];
 	}
 	return float(g_Players[client][EPKills]);
 }
 
-Float:GetAssistsToKD(client) {
+Float:GetAssistsToKD(assists) {
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		return 0.0;
 	}
 	if(Float:g_ConVars[ECMultiAssists][ConVarValue] > 0.0) {
-		return float(g_Players[client][EPAssists]) * Float:g_ConVars[ECMultiAssists][ConVarValue];
+		return float(assists) * Float:g_ConVars[ECMultiAssists][ConVarValue];
 	}
 	return 0.0;
 }
