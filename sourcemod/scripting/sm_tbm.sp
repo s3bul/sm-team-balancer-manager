@@ -30,6 +30,8 @@ enum _:eCvars {
 	ECTransferType,
 	ECMultiPoints,
 	ECMultiMVP,
+	ECMultiKills,
+	ECMultiAssists,
 	ECImmunitySwitch,
 	ECImmunityJoin,
 	ECImmunityFlags,
@@ -115,6 +117,8 @@ public OnPluginStart() {
 		CreateConVar("sm_tbm_multi_points", "1", "x: Przez ile mnożyć punkty wygranych rund, itp.", FCVAR_PLUGIN, true, 0.5, true, 5.0));
 	AddConVar(g_ConVars[ECMultiMVP], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_mvp", "0.0", "Czy modyfikować KD graczy za uzyskane gwiazdki mvp? Im więcej, tym większa wartość KD.", FCVAR_PLUGIN, true, 0.0));
+	AddConVar(g_ConVars[ECMultiKills], ValueType_Float, OnConVarChange,
+		CreateConVar("sm_tbm_multi_kills", "0.0", "x > 0: Przez ile mnożyć fragi graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECImmunitySwitch], ValueType_Bool, OnConVarChange,
 		CreateConVar("sm_tbm_immunity_switch", "0", "1: Admini będą pomijani w działaniach TBM", FCVAR_PLUGIN, true, 0.0, true, 1.0));
 	AddConVar(g_ConVars[ECImmunityJoin], ValueType_Bool, OnConVarChange,
