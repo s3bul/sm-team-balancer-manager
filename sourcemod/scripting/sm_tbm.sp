@@ -53,6 +53,7 @@ enum eTeamData {
 	ETBotSize,
 	ETCond,
 	ETKills,
+	ETAssists,
 	ETDeaths,
 	Float:ETKDRatio,
 	Float:ETSumKDRatio,
@@ -642,6 +643,7 @@ TeamConditions() {
 GetKDInTeams() {
 	decl i, Float:fTmp, Float:sumMVP, bool:checkMVP;
 	SetValueForTeams(ETKills, 0);
+	SetValueForTeams(ETAssists, 0);
 	SetValueForTeams(ETDeaths, 0);
 	SetValueForTeamsF(ETSumKDRatio, 0.0);
 	sumMVP = float(GetMVPForPlayersAndSum());
@@ -652,6 +654,7 @@ GetKDInTeams() {
 			continue;
 
 		g_Teams[g_Players[i][EPTeam]][ETKills] += g_Players[i][EPKills];
+		g_Teams[g_Players[i][EPTeam]][ETAssists] += g_Players[i][EPAssists];
 		g_Teams[g_Players[i][EPTeam]][ETDeaths] += g_Players[i][EPDeaths];
 
 		g_Players[i][EPKDRatio] = (GetKillsToKD(g_Players[i][EPKills]) + GetAssistsToKD(g_Players[i][EPAssists])) / FloatMax(float(g_Players[i][EPDeaths]), 0.5);
@@ -664,10 +667,10 @@ GetKDInTeams() {
 		fTmp = Float:g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] + Float:g_Players[i][EPKDRatio];
 		g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] = fTmp;
 	}
-	g_Teams[CS_TEAM_NONE][ETKDRatio] = GetKillsToKD(g_Teams[CS_TEAM_NONE][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_NONE][ETDeaths]), 0.5);
-	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = GetKillsToKD(g_Teams[CS_TEAM_SPECTATOR][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.5);
-	g_Teams[CS_TEAM_T][ETKDRatio] = GetKillsToKD(g_Teams[CS_TEAM_T][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_T][ETDeaths]), 0.5);
-	g_Teams[CS_TEAM_CT][ETKDRatio] = GetKillsToKD(g_Teams[CS_TEAM_CT][ETKills]) / FloatMax(float(g_Teams[CS_TEAM_CT][ETDeaths]), 0.5);
+	g_Teams[CS_TEAM_NONE][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_NONE][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_NONE][ETAssists])) / FloatMax(float(g_Teams[CS_TEAM_NONE][ETDeaths]), 0.5);
+	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_SPECTATOR][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_SPECTATOR][ETAssists])) / FloatMax(float(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.5);
+	g_Teams[CS_TEAM_T][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_T][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_T][ETAssists])) / FloatMax(float(g_Teams[CS_TEAM_T][ETDeaths]), 0.5);
+	g_Teams[CS_TEAM_CT][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_CT][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_CT][ETAssists])) / FloatMax(float(g_Teams[CS_TEAM_CT][ETDeaths]), 0.5);
 }
 
 Float:GetKillsToKD(kills) {
