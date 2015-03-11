@@ -32,6 +32,7 @@ enum _:eCvars {
 	ECMultiMVP,
 	ECMultiKills,
 	ECMultiAssists,
+	ECMultiDeaths,
 	ECImmunitySwitch,
 	ECImmunityJoin,
 	ECImmunityFlags,
@@ -123,6 +124,8 @@ public OnPluginStart() {
 		CreateConVar("sm_tbm_multi_kills", "1.0", "x > 1: Przez ile mnożyć fragi graczy przy liczeniu KD; 1: Standardowo", FCVAR_PLUGIN, true, 1.0));
 	AddConVar(g_ConVars[ECMultiAssists], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_assists", "0.0", "x > 0: Przez ile mnożyć asysty graczy przy liczeniu KD; 0: Wyłączone; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0));
+	AddConVar(g_ConVars[ECMultiDeaths], ValueType_Float, OnConVarChange,
+		CreateConVar("sm_tbm_multi_deaths", "0.0", "x > 0: Przez ile mnożyć śmierci graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECImmunitySwitch], ValueType_Bool, OnConVarChange,
 		CreateConVar("sm_tbm_immunity_switch", "0", "1: Admini będą pomijani w działaniach TBM", FCVAR_PLUGIN, true, 0.0, true, 1.0));
 	AddConVar(g_ConVars[ECImmunityJoin], ValueType_Bool, OnConVarChange,
@@ -660,7 +663,7 @@ GetKDInTeams() {
 		g_Teams[g_Players[i][EPTeam]][ETDeaths] += g_Players[i][EPDeaths];
 		g_Teams[g_Players[i][EPTeam]][ETMVP] += g_Players[i][EPMVP];
 
-		g_Players[i][EPKDRatio] = (GetKillsToKD(g_Players[i][EPKills]) + GetAssistsToKD(g_Players[i][EPAssists])) / FloatMax(float(g_Players[i][EPDeaths]), 0.1);
+		g_Players[i][EPKDRatio] = (GetKillsToKD(g_Players[i][EPKills]) + GetAssistsToKD(g_Players[i][EPAssists])) / FloatMax(GetDeathsToKD(g_Players[i][EPDeaths]), 0.1);
 
 		if(checkMVP) {
 			fTmp = Float:g_Players[i][EPKDRatio] + Float:g_Players[i][EPKDRatio] * (float(g_Players[i][EPMVP])/sumMVP + Float:g_ConVars[ECMultiMVP][ConVarValue]);
@@ -670,17 +673,18 @@ GetKDInTeams() {
 		fTmp = Float:g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] + Float:g_Players[i][EPKDRatio];
 		g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] = fTmp;
 	}
-	g_Teams[CS_TEAM_NONE][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_NONE][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_NONE][ETAssists])) / FloatMax(float(g_Teams[CS_TEAM_NONE][ETDeaths]), 0.1);
-	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_SPECTATOR][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_SPECTATOR][ETAssists])) / FloatMax(float(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.1);
-	g_Teams[CS_TEAM_T][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_T][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_T][ETAssists])) / FloatMax(float(g_Teams[CS_TEAM_T][ETDeaths]), 0.1);
-	g_Teams[CS_TEAM_CT][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_CT][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_CT][ETAssists])) / FloatMax(float(g_Teams[CS_TEAM_CT][ETDeaths]), 0.1);
+	g_Teams[CS_TEAM_NONE][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_NONE][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_NONE][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_NONE][ETDeaths]), 0.1);
+	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_SPECTATOR][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_SPECTATOR][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.1);
+	g_Teams[CS_TEAM_T][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_T][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_T][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_T][ETDeaths]), 0.1);
+	g_Teams[CS_TEAM_CT][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_CT][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_CT][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_CT][ETDeaths]), 0.1);
 }
 
 Float:GetKillsToKD(kills) {
+	new Float:killsF = float(kills);
 	if(Float:g_ConVars[ECMultiKills][ConVarValue] > 1.0) {
-		return float(kills) * Float:g_ConVars[ECMultiKills][ConVarValue];
+		return killsF * Float:g_ConVars[ECMultiKills][ConVarValue];
 	}
-	return float(kills);
+	return killsF;
 }
 
 Float:GetAssistsToKD(assists) {
@@ -691,6 +695,14 @@ Float:GetAssistsToKD(assists) {
 		return float(assists) * Float:g_ConVars[ECMultiAssists][ConVarValue];
 	}
 	return 0.0;
+}
+
+Float:GetDeathsToKD(deaths) {
+	new Float:deathsF = float(deaths);
+	if(Float:g_ConVars[ECMultiDeaths][ConVarValue] > 0.0) {
+		return deathsF * Float:g_ConVars[ECMultiDeaths][ConVarValue];
+	}
+	return deathsF;
 }
 
 GetMVPForPlayersAndSum() {
