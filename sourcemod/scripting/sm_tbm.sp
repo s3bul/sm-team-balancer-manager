@@ -28,6 +28,7 @@ enum _:eCvars {
 	ECSwitchFreq,
 	ECSwitchMin,
 	ECTransferType,
+	ECTypePoints,
 	ECMultiPoints,
 	ECMultiMVP,
 	ECMultiKills,
@@ -116,6 +117,8 @@ public OnPluginStart() {
 		CreateConVar("sm_tbm_switch_min", "3", "x: Minimalna liczba graczy na mapie, kiedy zaczyna się transferowanie", FCVAR_PLUGIN, true, 2.0));
 	AddConVar(g_ConVars[ECTransferType], ValueType_Int, OnConVarChange,
 		CreateConVar("sm_tbm_transfer_type", "1", "x: Im więcej tym plugin będzie agresywniej reagował", FCVAR_PLUGIN, true, 1.0, true, 3.0));
+	AddConVar(g_ConVars[ECTypePoints], ValueType_Int, OnConVarChange,
+		CreateConVar("sm_tbm_type_points", "0", "0: Tylko fragi; 1: Fragi i asysty; 2: Fragi i punkty; 3: Fragi, asysty i punkty; 4: Tylko punkty; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0, true, 4.0));
 	AddConVar(g_ConVars[ECMultiPoints], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_points", "1", "x: Przez ile mnożyć punkty wygranych rund, itp.", FCVAR_PLUGIN, true, 0.5, true, 5.0));
 	AddConVar(g_ConVars[ECMultiMVP], ValueType_Float, OnConVarChange,
@@ -663,7 +666,7 @@ GetKDInTeams() {
 		g_Teams[g_Players[i][EPTeam]][ETDeaths] += g_Players[i][EPDeaths];
 		g_Teams[g_Players[i][EPTeam]][ETMVP] += g_Players[i][EPMVP];
 
-		g_Players[i][EPKDRatio] = (GetKillsToKD(g_Players[i][EPKills]) + GetAssistsToKD(g_Players[i][EPAssists])) / FloatMax(GetDeathsToKD(g_Players[i][EPDeaths]), 0.1);
+		g_Players[i][EPKDRatio] = GetPlayerPointsToKD(i) / FloatMax(GetDeathsToKD(g_Players[i][EPDeaths]), 0.1);
 
 		if(checkMVP) {
 			fTmp = Float:g_Players[i][EPKDRatio] + Float:g_Players[i][EPKDRatio] * (float(g_Players[i][EPMVP])/sumMVP + Float:g_ConVars[ECMultiMVP][ConVarValue]);
@@ -677,6 +680,21 @@ GetKDInTeams() {
 	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_SPECTATOR][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_SPECTATOR][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.1);
 	g_Teams[CS_TEAM_T][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_T][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_T][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_T][ETDeaths]), 0.1);
 	g_Teams[CS_TEAM_CT][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_CT][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_CT][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_CT][ETDeaths]), 0.1);
+}
+
+Float:GetPlayerPointsToKD(client) {
+	if(g_Wart[eVersion] != Engine_CSGO) {
+		return GetKillsToKD(g_Players[client][EPKills]);
+	}
+	decl Float:pointsF;
+	switch(g_ConVars[ECTypePoints][ConVarValue]) {
+		case 1: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]);
+		case 2: pointsF = GetKillsToKD(g_Players[client][EPKills]);
+		case 3: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]);
+		case 4: pointsF = GetKillsToKD(g_Players[client][EPKills]);
+		default: pointsF = GetKillsToKD(g_Players[client][EPKills]);
+	}
+	return FloatMax(pointsF, 0.0);
 }
 
 Float:GetKillsToKD(kills) {
