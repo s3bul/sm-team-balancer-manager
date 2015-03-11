@@ -55,6 +55,7 @@ enum eTeamData {
 	ETKills,
 	ETAssists,
 	ETDeaths,
+	ETMVP,
 	Float:ETKDRatio,
 	Float:ETSumKDRatio,
 	Float:ETPoints
@@ -645,6 +646,7 @@ GetKDInTeams() {
 	SetValueForTeams(ETKills, 0);
 	SetValueForTeams(ETAssists, 0);
 	SetValueForTeams(ETDeaths, 0);
+	SetValueForTeams(ETMVP, 0);
 	SetValueForTeamsF(ETSumKDRatio, 0.0);
 	sumMVP = float(GetMVPForPlayersAndSum());
 	checkMVP = bool:(Float:g_ConVars[ECMultiMVP][ConVarValue] >= 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1.0);
@@ -656,6 +658,7 @@ GetKDInTeams() {
 		g_Teams[g_Players[i][EPTeam]][ETKills] += g_Players[i][EPKills];
 		g_Teams[g_Players[i][EPTeam]][ETAssists] += g_Players[i][EPAssists];
 		g_Teams[g_Players[i][EPTeam]][ETDeaths] += g_Players[i][EPDeaths];
+		g_Teams[g_Players[i][EPTeam]][ETMVP] += g_Players[i][EPMVP];
 
 		g_Players[i][EPKDRatio] = (GetKillsToKD(g_Players[i][EPKills]) + GetAssistsToKD(g_Players[i][EPAssists])) / FloatMax(float(g_Players[i][EPDeaths]), 0.5);
 
