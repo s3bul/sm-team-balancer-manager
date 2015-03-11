@@ -27,7 +27,7 @@ enum _:eCvars {
 	ECSwitchAfter,
 	ECSwitchFreq,
 	ECSwitchMin,
-	ECTransferType,
+	ECTypeTransfer,
 	ECTypePoints,
 	ECMultiPoints,
 	ECMultiMVP,
@@ -115,8 +115,8 @@ public OnPluginStart() {
 		CreateConVar("sm_tbm_switch_freq", "2", "x: Co ile rund ma przerzucać graczy", FCVAR_PLUGIN, true, 1.0));
 	AddConVar(g_ConVars[ECSwitchMin], ValueType_Int, OnConVarChange,
 		CreateConVar("sm_tbm_switch_min", "3", "x: Minimalna liczba graczy na mapie, kiedy zaczyna się transferowanie", FCVAR_PLUGIN, true, 2.0));
-	AddConVar(g_ConVars[ECTransferType], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_transfer_type", "1", "x: Im więcej tym plugin będzie agresywniej reagował", FCVAR_PLUGIN, true, 1.0, true, 3.0));
+	AddConVar(g_ConVars[ECTypeTransfer], ValueType_Int, OnConVarChange,
+		CreateConVar("sm_tbm_type_transfer", "1", "x: Im więcej tym plugin będzie agresywniej reagował", FCVAR_PLUGIN, true, 1.0, true, 3.0));
 	AddConVar(g_ConVars[ECTypePoints], ValueType_Int, OnConVarChange,
 		CreateConVar("sm_tbm_type_points", "0", "0: Tylko fragi; 1: Fragi i asysty; 2: Fragi i punkty; 3: Fragi, asysty i punkty; 4: Tylko punkty; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0, true, 4.0));
 	AddConVar(g_ConVars[ECMultiPoints], ValueType_Float, OnConVarChange,
@@ -416,7 +416,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 			doTransfer();
 		}
 		else {
-			switch(g_ConVars[ECTransferType][ConVarValue]) {
+			switch(g_ConVars[ECTypeTransfer][ConVarValue]) {
 				case 3: {
 					if(g_Teams[g_Wart[iTeamWinner]][ETBotSize]+RoundToCeil(g_ConVars[ECMaxDiff][ConVarValue] * 0.5) < g_Teams[g_Wart[iTeamLoser]][ETBotSize])
 						doSwitch();
