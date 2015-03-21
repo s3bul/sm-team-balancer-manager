@@ -57,6 +57,7 @@ enum eTeamData {
 	ETKills,
 	ETAssists,
 	ETDeaths,
+	ETScore,
 	ETMVP,
 	Float:ETKDRatio,
 	Float:ETSumKDRatio,
@@ -67,6 +68,7 @@ enum ePlayerData {
 	EPKills,
 	EPAssists,
 	EPDeaths,
+	EPScore,
 	EPMVP,
 	Float:EPKDRatio,
 	Float:EPBlockTransfer,
@@ -652,8 +654,10 @@ GetKDInTeams() {
 	SetValueForTeams(ETKills, 0);
 	SetValueForTeams(ETAssists, 0);
 	SetValueForTeams(ETDeaths, 0);
+	SetValueForTeams(ETScore, 0);
 	SetValueForTeams(ETMVP, 0);
 	SetValueForTeamsF(ETSumKDRatio, 0.0);
+	GetScoreForPlayers();
 	sumMVP = float(GetMVPForPlayersAndSum());
 	checkMVP = bool:(Float:g_ConVars[ECMultiMVP][ConVarValue] >= 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1.0);
 
@@ -664,6 +668,7 @@ GetKDInTeams() {
 		g_Teams[g_Players[i][EPTeam]][ETKills] += g_Players[i][EPKills];
 		g_Teams[g_Players[i][EPTeam]][ETAssists] += g_Players[i][EPAssists];
 		g_Teams[g_Players[i][EPTeam]][ETDeaths] += g_Players[i][EPDeaths];
+		g_Teams[g_Players[i][EPTeam]][ETScore] += g_Players[i][EPScore];
 		g_Teams[g_Players[i][EPTeam]][ETMVP] += g_Players[i][EPMVP];
 
 		g_Players[i][EPKDRatio] = GetPlayerPointsToKD(i) / FloatMax(GetDeathsToKD(g_Players[i][EPDeaths]), 0.1);
@@ -695,9 +700,9 @@ Float:GetPlayerPointsToKD(client) {
 	else {
 		switch(g_ConVars[ECTypePoints][ConVarValue]) {
 			case 1: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]);
-			case 2: pointsF = GetKillsToKD(g_Players[client][EPKills]);
-			case 3: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]);
-			case 4: pointsF = GetKillsToKD(g_Players[client][EPKills]);
+			case 2: pointsF = GetKillsToKD(g_Players[client][EPKills]) + float(g_Players[client][EPScore]);
+			case 3: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]) + float(g_Players[client][EPScore]);
+			case 4: pointsF = float(g_Players[client][EPScore]);
 			default: pointsF = GetKillsToKD(g_Players[client][EPKills]);
 		}
 	}
@@ -728,6 +733,18 @@ Float:GetDeathsToKD(deaths) {
 		return deathsF * Float:g_ConVars[ECMultiDeaths][ConVarValue];
 	}
 	return deathsF;
+}
+
+GetScoreForPlayers() {
+	if(g_Wart[eVersion] != Engine_CSGO) {
+		return;
+	}
+	for(new i=1; i<=g_Wart[iMaxPlayers]; ++i) {
+		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
+			continue;
+
+		g_Players[i][EPScore] = CS_GetClientContributionScore(i);
+	}
 }
 
 GetMVPForPlayersAndSum() {
