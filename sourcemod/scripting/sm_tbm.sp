@@ -676,10 +676,10 @@ GetKDInTeams() {
 		fTmp = Float:g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] + Float:g_Players[i][EPKDRatio];
 		g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] = fTmp;
 	}
-	g_Teams[CS_TEAM_NONE][ETKDRatio] = Float:g_Teams[CS_TEAM_NONE][ETSumKDRatio] / float(g_Teams[CS_TEAM_NONE][ETSize]);
-	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = Float:g_Teams[CS_TEAM_SPECTATOR][ETSumKDRatio] / float(g_Teams[CS_TEAM_SPECTATOR][ETSize]);
-	g_Teams[CS_TEAM_T][ETKDRatio] = Float:g_Teams[CS_TEAM_T][ETSumKDRatio] / float(g_Teams[CS_TEAM_T][ETSize]);
-	g_Teams[CS_TEAM_CT][ETKDRatio] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] / float(g_Teams[CS_TEAM_CT][ETSize]);
+	g_Teams[CS_TEAM_NONE][ETKDRatio] = g_Teams[CS_TEAM_NONE][ETSize] > 0 ? Float:g_Teams[CS_TEAM_NONE][ETSumKDRatio] / float(g_Teams[CS_TEAM_NONE][ETSize]) : 0.0;
+	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = g_Teams[CS_TEAM_SPECTATOR][ETSize] > 0 ? Float:g_Teams[CS_TEAM_SPECTATOR][ETSumKDRatio] / float(g_Teams[CS_TEAM_SPECTATOR][ETSize]) : 0.0;
+	g_Teams[CS_TEAM_T][ETKDRatio] = g_Teams[CS_TEAM_T][ETSize] > 0 ? Float:g_Teams[CS_TEAM_T][ETSumKDRatio] / float(g_Teams[CS_TEAM_T][ETSize]) : 0.0;
+	g_Teams[CS_TEAM_CT][ETKDRatio] = g_Teams[CS_TEAM_CT][ETSize] > 0 ? Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] / float(g_Teams[CS_TEAM_CT][ETSize]) : 0.0;
 
 	/*g_Teams[CS_TEAM_NONE][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_NONE][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_NONE][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_NONE][ETDeaths]), 0.1);
 	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_SPECTATOR][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_SPECTATOR][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.1);
