@@ -681,15 +681,15 @@ GetKDInTeams() {
 		fTmp = Float:g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] + Float:g_Players[i][EPKDRatio];
 		g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] = fTmp;
 	}
-	g_Teams[CS_TEAM_NONE][ETKDRatio] = g_Teams[CS_TEAM_NONE][ETSize] > 0 ? Float:g_Teams[CS_TEAM_NONE][ETSumKDRatio] / float(g_Teams[CS_TEAM_NONE][ETSize]) : 0.0;
+	/*g_Teams[CS_TEAM_NONE][ETKDRatio] = g_Teams[CS_TEAM_NONE][ETSize] > 0 ? Float:g_Teams[CS_TEAM_NONE][ETSumKDRatio] / float(g_Teams[CS_TEAM_NONE][ETSize]) : 0.0;
 	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = g_Teams[CS_TEAM_SPECTATOR][ETSize] > 0 ? Float:g_Teams[CS_TEAM_SPECTATOR][ETSumKDRatio] / float(g_Teams[CS_TEAM_SPECTATOR][ETSize]) : 0.0;
 	g_Teams[CS_TEAM_T][ETKDRatio] = g_Teams[CS_TEAM_T][ETSize] > 0 ? Float:g_Teams[CS_TEAM_T][ETSumKDRatio] / float(g_Teams[CS_TEAM_T][ETSize]) : 0.0;
-	g_Teams[CS_TEAM_CT][ETKDRatio] = g_Teams[CS_TEAM_CT][ETSize] > 0 ? Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] / float(g_Teams[CS_TEAM_CT][ETSize]) : 0.0;
+	g_Teams[CS_TEAM_CT][ETKDRatio] = g_Teams[CS_TEAM_CT][ETSize] > 0 ? Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] / float(g_Teams[CS_TEAM_CT][ETSize]) : 0.0;*/
 
-	/*g_Teams[CS_TEAM_NONE][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_NONE][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_NONE][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_NONE][ETDeaths]), 0.1);
-	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_SPECTATOR][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_SPECTATOR][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.1);
-	g_Teams[CS_TEAM_T][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_T][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_T][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_T][ETDeaths]), 0.1);
-	g_Teams[CS_TEAM_CT][ETKDRatio] = (GetKillsToKD(g_Teams[CS_TEAM_CT][ETKills]) + GetAssistsToKD(g_Teams[CS_TEAM_CT][ETAssists])) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_CT][ETDeaths]), 0.1);*/
+	g_Teams[CS_TEAM_NONE][ETKDRatio] = GetTeamPointsToKD(CS_TEAM_NONE) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_NONE][ETDeaths]), 0.1);
+	g_Teams[CS_TEAM_SPECTATOR][ETKDRatio] = GetTeamPointsToKD(CS_TEAM_SPECTATOR) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_SPECTATOR][ETDeaths]), 0.1);
+	g_Teams[CS_TEAM_T][ETKDRatio] = GetTeamPointsToKD(CS_TEAM_T) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_T][ETDeaths]), 0.1);
+	g_Teams[CS_TEAM_CT][ETKDRatio] = GetTeamPointsToKD(CS_TEAM_CT) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_CT][ETDeaths]), 0.1);
 }
 
 Float:GetPlayerPointsToKD(client) {
@@ -704,6 +704,23 @@ Float:GetPlayerPointsToKD(client) {
 			case 3: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]) + float(g_Players[client][EPScore]);
 			case 4: pointsF = float(g_Players[client][EPScore]);
 			default: pointsF = GetKillsToKD(g_Players[client][EPKills]);
+		}
+	}
+	return FloatMax(pointsF, 0.0);
+}
+
+Float:GetTeamPointsToKD(team) {
+	decl Float:pointsF;
+	if(g_Wart[eVersion] != Engine_CSGO) {
+		pointsF = GetKillsToKD(g_Teams[team][ETKills]);
+	}
+	else {
+		switch(g_ConVars[ECTypePoints][ConVarValue]) {
+			case 1: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetAssistsToKD(g_Teams[team][ETAssists]);
+			case 2: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + float(g_Teams[team][ETScore]);
+			case 3: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetAssistsToKD(g_Teams[team][ETAssists]) + float(g_Teams[team][ETScore]);
+			case 4: pointsF = float(g_Teams[team][ETScore]);
+			default: pointsF = GetKillsToKD(g_Teams[team][ETKills]);
 		}
 	}
 	return FloatMax(pointsF, 0.0);
