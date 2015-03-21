@@ -34,6 +34,7 @@ enum _:eCvars {
 	ECMultiKills,
 	ECMultiAssists,
 	ECMultiDeaths,
+	ECMultiScore,
 	ECImmunitySwitch,
 	ECImmunityJoin,
 	ECImmunityFlags,
@@ -128,9 +129,11 @@ public OnPluginStart() {
 	AddConVar(g_ConVars[ECMultiKills], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_kills", "1.0", "x > 1: Przez ile mnożyć fragi graczy przy liczeniu KD; 1: Standardowo", FCVAR_PLUGIN, true, 1.0));
 	AddConVar(g_ConVars[ECMultiAssists], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_assists", "0.0", "x > 0: Przez ile mnożyć asysty graczy przy liczeniu KD; 0: Wyłączone; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0));
+		CreateConVar("sm_tbm_multi_assists", "0.0", "x > 0: Przez ile mnożyć asysty graczy przy liczeniu KD; 0: Standardowo; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECMultiDeaths], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_deaths", "0.0", "x > 0: Przez ile mnożyć śmierci graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
+	AddConVar(g_ConVars[ECMultiScore], ValueType_Float, OnConVarChange,
+		CreateConVar("sm_tbm_multi_score", "0.0", "x > 0: Przez ile mnożyć punkty graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECImmunitySwitch], ValueType_Bool, OnConVarChange,
 		CreateConVar("sm_tbm_immunity_switch", "0", "1: Admini będą pomijani w działaniach TBM", FCVAR_PLUGIN, true, 0.0, true, 1.0));
 	AddConVar(g_ConVars[ECImmunityJoin], ValueType_Bool, OnConVarChange,
@@ -700,9 +703,9 @@ Float:GetPlayerPointsToKD(client) {
 	else {
 		switch(g_ConVars[ECTypePoints][ConVarValue]) {
 			case 1: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]);
-			case 2: pointsF = GetKillsToKD(g_Players[client][EPKills]) + float(g_Players[client][EPScore]);
-			case 3: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]) + float(g_Players[client][EPScore]);
-			case 4: pointsF = float(g_Players[client][EPScore]);
+			case 2: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetScoreToKD(g_Players[client][EPScore]);
+			case 3: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]) + GetScoreToKD(g_Players[client][EPScore]);
+			case 4: pointsF = GetScoreToKD(g_Players[client][EPScore]);
 			default: pointsF = GetKillsToKD(g_Players[client][EPKills]);
 		}
 	}
@@ -717,9 +720,9 @@ Float:GetTeamPointsToKD(team) {
 	else {
 		switch(g_ConVars[ECTypePoints][ConVarValue]) {
 			case 1: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetAssistsToKD(g_Teams[team][ETAssists]);
-			case 2: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + float(g_Teams[team][ETScore]);
-			case 3: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetAssistsToKD(g_Teams[team][ETAssists]) + float(g_Teams[team][ETScore]);
-			case 4: pointsF = float(g_Teams[team][ETScore]);
+			case 2: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetScoreToKD(g_Teams[team][ETScore]);
+			case 3: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetAssistsToKD(g_Teams[team][ETAssists]) + GetScoreToKD(g_Teams[team][ETScore]);
+			case 4: pointsF = GetScoreToKD(g_Teams[team][ETScore]);
 			default: pointsF = GetKillsToKD(g_Teams[team][ETKills]);
 		}
 	}
@@ -738,10 +741,11 @@ Float:GetAssistsToKD(assists) {
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		return 0.0;
 	}
+	new Float:assistsF = float(assists);
 	if(Float:g_ConVars[ECMultiAssists][ConVarValue] > 0.0) {
-		return float(assists) * Float:g_ConVars[ECMultiAssists][ConVarValue];
+		return assistsF * Float:g_ConVars[ECMultiAssists][ConVarValue];
 	}
-	return 0.0;
+	return assistsF;
 }
 
 Float:GetDeathsToKD(deaths) {
@@ -750,6 +754,17 @@ Float:GetDeathsToKD(deaths) {
 		return deathsF * Float:g_ConVars[ECMultiDeaths][ConVarValue];
 	}
 	return deathsF;
+}
+
+Float:GetScoreToKD(score) {
+	if(g_Wart[eVersion] != Engine_CSGO) {
+		return 0.0;
+	}
+	new Float:scoreF = float(score);
+	if(Float:g_ConVars[ECMultiScore][ConVarValue] > 0.0) {
+		return scoreF * Float:g_ConVars[ECMultiScore][ConVarValue];
+	}
+	return scoreF;
 }
 
 GetScoreForPlayers() {
