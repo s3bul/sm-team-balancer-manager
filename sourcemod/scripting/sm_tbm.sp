@@ -7,7 +7,7 @@
 #include <my_admin>
 #include <my_timers>
 
-#define PLUGIN_VERSION "0.7"
+#define PLUGIN_VERSION "0.8"
 
 public Plugin:myinfo = {
 	name				= "Team Balancer Manager",
@@ -127,7 +127,7 @@ public OnPluginStart() {
 	AddConVar(g_ConVars[ECMultiMVP], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_mvp", "0.0", "x >= 0: Jak bardzo zwiększać KD graczy za uzyskane gwiazdki mvp; -1: Brak bonusu za mvp; Tylko CS:GO", FCVAR_PLUGIN, true, -1.0));
 	AddConVar(g_ConVars[ECMultiKills], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_kills", "1.0", "x > 1: Przez ile mnożyć fragi graczy przy liczeniu KD; 1: Standardowo", FCVAR_PLUGIN, true, 1.0));
+		CreateConVar("sm_tbm_multi_kills", "0.0", "x > 0: Przez ile mnożyć fragi graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECMultiAssists], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_assists", "0.0", "x > 0: Przez ile mnożyć asysty graczy przy liczeniu KD; 0: Standardowo; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECMultiDeaths], ValueType_Float, OnConVarChange,
@@ -731,7 +731,7 @@ Float:GetTeamPointsToKD(team) {
 
 Float:GetKillsToKD(kills) {
 	new Float:killsF = float(kills);
-	if(Float:g_ConVars[ECMultiKills][ConVarValue] > 1.0) {
+	if(Float:g_ConVars[ECMultiKills][ConVarValue] > 0.0) {
 		return killsF * Float:g_ConVars[ECMultiKills][ConVarValue];
 	}
 	return killsF;
