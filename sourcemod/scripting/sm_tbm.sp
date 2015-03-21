@@ -133,7 +133,7 @@ public OnPluginStart() {
 	AddConVar(g_ConVars[ECMultiDeaths], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_deaths", "0.0", "x > 0: Przez ile mnożyć śmierci graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECMultiScore], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_score", "0.0", "x > 0: Przez ile mnożyć punkty graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
+		CreateConVar("sm_tbm_multi_score", "0.0", "x > 0: Przez ile mnożyć punkty graczy przy liczeniu KD; 0: Standardowo; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECImmunitySwitch], ValueType_Bool, OnConVarChange,
 		CreateConVar("sm_tbm_immunity_switch", "0", "1: Admini będą pomijani w działaniach TBM", FCVAR_PLUGIN, true, 0.0, true, 1.0));
 	AddConVar(g_ConVars[ECImmunityJoin], ValueType_Bool, OnConVarChange,
