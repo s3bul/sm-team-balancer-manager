@@ -9,6 +9,8 @@
 
 #define PLUGIN_VERSION "0.8"
 
+#define DEBUG_PLUGIN
+
 public Plugin:myinfo = {
 	name				= "Team Balancer Manager",
 	author			= "Sebul",
@@ -95,6 +97,10 @@ new g_ConVars[eCvars][ConVar];
 new g_Teams[CS_TEAM_CT+1][eTeamData];
 new g_Players[MAXPLAYERS+1][ePlayerData];
 
+#if defined DEBUG_PLUGIN
+new String:g_PathDebug[PLATFORM_MAX_PATH];
+#endif
+
 public OnPluginStart() {
 	LoadTranslations("tbm.phrases");
 
@@ -166,6 +172,15 @@ public OnPluginStart() {
 public OnMapStart() {
 	g_Wart[iMaxPlayers] = GetMaxClients();
 	ClearGame();
+#if defined DEBUG_PLUGIN
+	BuildPath(Path_SM, g_PathDebug, PLATFORM_MAX_PATH, "logs/sm_tbm/");
+	if(!DirExists(g_PathDebug)) {
+		CreateDirectory(g_PathDebug, FPERM_U_READ + FPERM_U_WRITE + FPERM_U_EXEC + FPERM_G_READ + FPERM_G_WRITE + FPERM_G_EXEC);
+	}
+	decl String:sTmp[64];
+	FormatTime(sTmp, 64, "debug_%Y%m%d");
+	StrCat(g_PathDebug, PLATFORM_MAX_PATH, sTmp);
+#endif
 }
 
 public OnConfigsExecuted() {
@@ -399,6 +414,9 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 	g_Teams[CS_TEAM_T][ETPoints] = Float:g_Teams[CS_TEAM_T][ETSumKDRatio] + (g_Teams[CS_TEAM_T][ETWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]) + (g_Teams[CS_TEAM_T][ETRowWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]);
 	g_Teams[CS_TEAM_CT][ETPoints] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] + (g_Teams[CS_TEAM_CT][ETWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]) + (g_Teams[CS_TEAM_CT][ETRowWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]);
 	TeamConditions();
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "%f", GetGameTime());
+#endif
 
 	if(!g_Wart[bMaxSizeTeam]) {
 		if(g_Wart[iRoundNumber] < g_ConVars[ECSwitchAfter][ConVarValue])
