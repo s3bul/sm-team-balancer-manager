@@ -96,7 +96,6 @@ new g_Wart[eValues];
 new g_ConVars[eCvars][ConVar];
 new g_Teams[CS_TEAM_CT+1][eTeamData];
 new g_Players[MAXPLAYERS+1][ePlayerData];
-
 #if defined DEBUG_PLUGIN
 new String:g_PathDebug[PLATFORM_MAX_PATH];
 #endif
@@ -415,7 +414,28 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 	g_Teams[CS_TEAM_CT][ETPoints] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] + (g_Teams[CS_TEAM_CT][ETWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]) + (g_Teams[CS_TEAM_CT][ETRowWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]);
 	TeamConditions();
 #if defined DEBUG_PLUGIN
-	LogToFile(g_PathDebug, "%f", GetGameTime());
+	LogToFile(g_PathDebug, "Połączeni gracze: %i", GetClientCount());
+	LogToFile(g_PathDebug, "Wielkość drużyn: TT - %i(%i), CT - %i(%i)", g_Teams[CS_TEAM_T][ETSize], g_Teams[CS_TEAM_T][ETBotSize] - g_Teams[CS_TEAM_T][ETSize], g_Teams[CS_TEAM_CT][ETSize], g_Teams[CS_TEAM_CT][ETBotSize] - g_Teams[CS_TEAM_CT][ETSize]);
+	LogToFile(g_PathDebug, "Suma zabić drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETKills], g_Teams[CS_TEAM_CT][ETKills]);
+	LogToFile(g_PathDebug, "Suma śmierci drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETDeaths], g_Teams[CS_TEAM_CT][ETDeaths]);
+	if(g_Wart[eVersion] == Engine_CSGO) {
+		LogToFile(g_PathDebug, "Suma asyst drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETAssists], g_Teams[CS_TEAM_CT][ETAssists]);
+		LogToFile(g_PathDebug, "Suma punktów drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETScore], g_Teams[CS_TEAM_CT][ETScore]);
+		LogToFile(g_PathDebug, "Suma MVP drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETMVP], g_Teams[CS_TEAM_CT][ETMVP]);
+	}
+	LogToFile(g_PathDebug, "KD drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETKDRatio], Float:g_Teams[CS_TEAM_CT][ETKDRatio]);
+	LogToFile(g_PathDebug, "Suma KD drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETSumKDRatio], Float:g_Teams[CS_TEAM_CT][ETSumKDRatio]);
+	LogToFile(g_PathDebug, "Punkty drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETPoints], Float:g_Teams[CS_TEAM_CT][ETPoints]);
+	LogToFile(g_PathDebug, "Wygrane drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETWins], g_Teams[CS_TEAM_CT][ETWins]);
+	if(g_Teams[CS_TEAM_T][ETRowWins] || g_Teams[CS_TEAM_CT][ETRowWins]) {
+		LogToFile(g_PathDebug, "Ostatnie %i rund/y zostały wygrane przez %s", g_Teams[CS_TEAM_T][ETRowWins] > 0 ? g_Teams[CS_TEAM_T][ETRowWins] : g_Teams[CS_TEAM_CT][ETRowWins], g_Teams[CS_TEAM_T][ETRowWins] > 0 ? "TT" : "CT");
+	}
+	LogToFile(g_PathDebug, "Punkty przewagi drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETCond], g_Teams[CS_TEAM_CT][ETCond]);
+	switch(g_Wart[iTeamWinner]) {
+		case CS_TEAM_T: LogToFile(g_PathDebug, "Drużyna wygrywająca to TT");
+		case CS_TEAM_CT: LogToFile(g_PathDebug, "Drużyna wygrywająca to CT");
+		default: LogToFile(g_PathDebug, "Drużyny są zbalansowane");
+	}
 #endif
 
 	if(!g_Wart[bMaxSizeTeam]) {
