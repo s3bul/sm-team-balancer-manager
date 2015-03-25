@@ -415,7 +415,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 	TeamConditions();
 #if defined DEBUG_PLUGIN
 	LogToFile(g_PathDebug, "Połączeni gracze: %i", GetClientCount());
-	LogToFile(g_PathDebug, "Wielkość drużyn: TT - %i(%i), CT - %i(%i)", g_Teams[CS_TEAM_T][ETSize], g_Teams[CS_TEAM_T][ETBotSize] - g_Teams[CS_TEAM_T][ETSize], g_Teams[CS_TEAM_CT][ETSize], g_Teams[CS_TEAM_CT][ETBotSize] - g_Teams[CS_TEAM_CT][ETSize]);
+	LogToFile(g_PathDebug, "Wielkość drużyn: TT - %i(%i), CT - %i(%i)", g_Teams[CS_TEAM_T][ETSize], g_Teams[CS_TEAM_T][ETBotSize], g_Teams[CS_TEAM_CT][ETSize], g_Teams[CS_TEAM_CT][ETBotSize]);
 	LogToFile(g_PathDebug, "Suma zabić drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETKills], g_Teams[CS_TEAM_CT][ETKills]);
 	LogToFile(g_PathDebug, "Suma śmierci drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETDeaths], g_Teams[CS_TEAM_CT][ETDeaths]);
 	if(g_Wart[eVersion] == Engine_CSGO) {
