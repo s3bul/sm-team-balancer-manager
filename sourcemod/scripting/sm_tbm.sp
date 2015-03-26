@@ -436,7 +436,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 		case CS_TEAM_CT: LogToFile(g_PathDebug, "Drużyna wygrywająca to CT");
 		default: LogToFile(g_PathDebug, "Drużyny są zbalansowane");
 	}
-	LogToFile(g_PathDebug, "============================================");
+	LogToFile(g_PathDebug, "================================================");
 #endif
 
 	if(!g_Wart[bMaxSizeTeam]) {
@@ -490,7 +490,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 		}
 	}
 #if defined DEBUG_PLUGIN
-	LogToFile(g_PathDebug, "============================================");
+	LogToFile(g_PathDebug, "================================================");
 #endif
 }
 
@@ -585,14 +585,14 @@ doSwitch() {
 	if(g_Teams[g_Wart[iTeamWinner]][ETSize] == 0 || g_Teams[g_Wart[iTeamLoser]][ETSize] == 0) {
 		TBMPrintToChatAll("%t %t", "No switch players", "need players");
 #if defined DEBUG_PLUGIN
-		LogToFile(g_PathDebug, "=== %T %T ===", "No switch player", LANG_SERVER, "need players", LANG_SERVER);
+		LogToFile(g_PathDebug, "=== %T %T ===", "No switch players", LANG_SERVER, "need players", LANG_SERVER);
 #endif
 		return;
 	}
 	if(g_Teams[g_Wart[iTeamWinner]][ETNumTargets] == 0 || g_Teams[g_Wart[iTeamLoser]][ETNumTargets] == 0) {
 		TBMPrintToChatAll("%t %t", "No switch players", "no valid targets");
 #if defined DEBUG_PLUGIN
-		LogToFile(g_PathDebug, "=== %T %T ===", "No switch player", LANG_SERVER, "no valid target win", LANG_SERVER);
+		LogToFile(g_PathDebug, "=== %T %T ===", "No switch players", LANG_SERVER, "no valid target win", LANG_SERVER);
 #endif
 		return;
 	}
