@@ -567,6 +567,7 @@ doTransfer() {
 
 	TBMPrintToChatAll("%t", "Transfer player", winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
 #if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "KD transferowanego gracza: %.3f", Float:g_Players[winner][EPKDRatio]);
 	LogToFile(g_PathDebug, "%T", "Transfer player", LANG_SERVER, winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
 #endif
 
@@ -623,6 +624,7 @@ doSwitch() {
 
 	TBMPrintToChatAll("%t", "Switch players", winnerName, loserName);
 #if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "KD zamienianych graczy: Winner - %.3f, Loser - %.3f", Float:g_Players[winner][EPKDRatio], Float:g_Players[loser][EPKDRatio]);
 	LogToFile(g_PathDebug, "%T", "Switch players", LANG_SERVER, winnerName, loserName);
 #endif
 
