@@ -177,7 +177,7 @@ public OnMapStart() {
 		CreateDirectory(g_PathDebug, FPERM_U_READ + FPERM_U_WRITE + FPERM_U_EXEC + FPERM_G_READ + FPERM_G_WRITE + FPERM_G_EXEC);
 	}
 	decl String:sTmp[64];
-	FormatTime(sTmp, 64, "debug_%Y%m%d");
+	FormatTime(sTmp, 64, "debug_%Y%m%d.log");
 	StrCat(g_PathDebug, PLATFORM_MAX_PATH, sTmp);
 #endif
 }
@@ -451,11 +451,18 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 
 	GetValidTargets(CS_TEAM_T);
 	GetValidTargets(CS_TEAM_CT);
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "=== TRANSFER ===");
+	LogToFile(g_PathDebug, "Ilość graczy do transferu: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETNumTargets], g_Teams[CS_TEAM_CT][ETNumTargets]);
+#endif
 
 	TBMPrintToChatAll("%t", "TBM Info");
 
 	if(g_Wart[iTeamWinner]) {
 		if(g_Wart[bMaxSizeTeam]) {
+#if defined DEBUG_PLUGIN
+			LogToFile(g_PathDebug, "=== ZBYT DUŻA RÓŻNICA WIELKOŚCI DRUŻYN ===");
+#endif
 			doTransfer();
 		}
 		else {
@@ -507,10 +514,16 @@ TBMPrintToChatAll(const String:sMessage[], any:...) {
 doTransfer() {
 	if(g_Teams[g_Wart[iTeamWinner]][ETSize] <= 1) {
 		TBMPrintToChatAll("%t %t", "No move player", "need players win");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T %T ===", "No move player", LANG_SERVER, "need players win", LANG_SERVER);
+#endif
 		return;
 	}
 	if(g_Teams[g_Wart[iTeamWinner]][ETNumTargets] <= 1) {
 		TBMPrintToChatAll("%t %t", "No move player", "no valid target win");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T %T ===", "No move player", LANG_SERVER, "no valid target win", LANG_SERVER);
+#endif
 		return;
 	}
 
@@ -541,6 +554,9 @@ doTransfer() {
 	}
 	if(!winner || !g_Players[winner][EPIsConnected] || !IsClientInGame(winner)) {
 		TBMPrintToChatAll("%t", "No target");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T ===", "No target", LANG_SERVER);
+#endif
 		return;
 	}
 
@@ -550,6 +566,9 @@ doTransfer() {
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 
 	TBMPrintToChatAll("%t", "Transfer player", winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "%T", "Transfer player", LANG_SERVER, winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
+#endif
 
 	CS_SwitchTeam(winner, (g_Players[winner][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
 	CS_UpdateClientModel(winner);
@@ -560,10 +579,16 @@ doTransfer() {
 doSwitch() {
 	if(g_Teams[g_Wart[iTeamWinner]][ETSize] == 0 || g_Teams[g_Wart[iTeamLoser]][ETSize] == 0) {
 		TBMPrintToChatAll("%t %t", "No switch players", "need players");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T %T ===", "No switch player", LANG_SERVER, "need players", LANG_SERVER);
+#endif
 		return;
 	}
 	if(g_Teams[g_Wart[iTeamWinner]][ETNumTargets] == 0 || g_Teams[g_Wart[iTeamLoser]][ETNumTargets] == 0) {
 		TBMPrintToChatAll("%t %t", "No switch players", "no valid targets");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T %T ===", "No switch player", LANG_SERVER, "no valid target win", LANG_SERVER);
+#endif
 		return;
 	}
 
@@ -584,6 +609,9 @@ doSwitch() {
 	}
 	if(!winner || !loser || !g_Players[winner][EPIsConnected] || !g_Players[loser][EPIsConnected] || !IsClientInGame(winner) || !IsClientInGame(loser)) {
 		TBMPrintToChatAll("%t", "No target");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T ===", "No target", LANG_SERVER);
+#endif
 		return;
 	}
 
@@ -594,6 +622,9 @@ doSwitch() {
 	GetClientName(loser, loserName, MAX_NAME_LENGTH);
 
 	TBMPrintToChatAll("%t", "Switch players", winnerName, loserName);
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "%T", "Switch players", LANG_SERVER, winnerName, loserName);
+#endif
 
 	CS_SwitchTeam(winner, (g_Players[winner][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
 	CS_UpdateClientModel(winner);
