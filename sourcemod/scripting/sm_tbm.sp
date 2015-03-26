@@ -9,6 +9,8 @@
 
 #define PLUGIN_VERSION "0.8"
 
+#define DEBUG_PLUGIN
+
 public Plugin:myinfo = {
 	name				= "Team Balancer Manager",
 	author			= "Sebul",
@@ -94,6 +96,9 @@ new g_Wart[eValues];
 new g_ConVars[eCvars][ConVar];
 new g_Teams[CS_TEAM_CT+1][eTeamData];
 new g_Players[MAXPLAYERS+1][ePlayerData];
+#if defined DEBUG_PLUGIN
+new String:g_PathDebug[PLATFORM_MAX_PATH];
+#endif
 
 public OnPluginStart() {
 	LoadTranslations("tbm.phrases");
@@ -166,6 +171,15 @@ public OnPluginStart() {
 public OnMapStart() {
 	g_Wart[iMaxPlayers] = GetMaxClients();
 	ClearGame();
+#if defined DEBUG_PLUGIN
+	BuildPath(Path_SM, g_PathDebug, PLATFORM_MAX_PATH, "logs/sm_tbm/");
+	if(!DirExists(g_PathDebug)) {
+		CreateDirectory(g_PathDebug, FPERM_U_READ + FPERM_U_WRITE + FPERM_U_EXEC + FPERM_G_READ + FPERM_G_WRITE + FPERM_G_EXEC);
+	}
+	decl String:sTmp[64];
+	FormatTime(sTmp, 64, "debug_%Y%m%d.log");
+	StrCat(g_PathDebug, PLATFORM_MAX_PATH, sTmp);
+#endif
 }
 
 public OnConfigsExecuted() {
@@ -399,6 +413,30 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 	g_Teams[CS_TEAM_T][ETPoints] = Float:g_Teams[CS_TEAM_T][ETSumKDRatio] + (g_Teams[CS_TEAM_T][ETWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]) + (g_Teams[CS_TEAM_T][ETRowWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]);
 	g_Teams[CS_TEAM_CT][ETPoints] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] + (g_Teams[CS_TEAM_CT][ETWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]) + (g_Teams[CS_TEAM_CT][ETRowWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]);
 	TeamConditions();
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "Połączeni gracze: %i", GetClientCount());
+	LogToFile(g_PathDebug, "Wielkość drużyn: TT - %i(%i), CT - %i(%i)", g_Teams[CS_TEAM_T][ETSize], g_Teams[CS_TEAM_T][ETBotSize], g_Teams[CS_TEAM_CT][ETSize], g_Teams[CS_TEAM_CT][ETBotSize]);
+	LogToFile(g_PathDebug, "Suma zabić drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETKills], g_Teams[CS_TEAM_CT][ETKills]);
+	LogToFile(g_PathDebug, "Suma śmierci drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETDeaths], g_Teams[CS_TEAM_CT][ETDeaths]);
+	if(g_Wart[eVersion] == Engine_CSGO) {
+		LogToFile(g_PathDebug, "Suma asyst drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETAssists], g_Teams[CS_TEAM_CT][ETAssists]);
+		LogToFile(g_PathDebug, "Suma punktów drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETScore], g_Teams[CS_TEAM_CT][ETScore]);
+		LogToFile(g_PathDebug, "Suma MVP drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETMVP], g_Teams[CS_TEAM_CT][ETMVP]);
+	}
+	LogToFile(g_PathDebug, "KD drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETKDRatio], Float:g_Teams[CS_TEAM_CT][ETKDRatio]);
+	LogToFile(g_PathDebug, "Suma KD drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETSumKDRatio], Float:g_Teams[CS_TEAM_CT][ETSumKDRatio]);
+	LogToFile(g_PathDebug, "Punkty drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETPoints], Float:g_Teams[CS_TEAM_CT][ETPoints]);
+	LogToFile(g_PathDebug, "Wygrane drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETWins], g_Teams[CS_TEAM_CT][ETWins]);
+	if(g_Teams[CS_TEAM_T][ETRowWins] || g_Teams[CS_TEAM_CT][ETRowWins]) {
+		LogToFile(g_PathDebug, "Ostatnie %i rund/y zostały wygrane przez %s", g_Teams[CS_TEAM_T][ETRowWins] > 0 ? g_Teams[CS_TEAM_T][ETRowWins] : g_Teams[CS_TEAM_CT][ETRowWins], g_Teams[CS_TEAM_T][ETRowWins] > 0 ? "TT" : "CT");
+	}
+	LogToFile(g_PathDebug, "Punkty przewagi drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETCond], g_Teams[CS_TEAM_CT][ETCond]);
+	switch(g_Wart[iTeamWinner]) {
+		case CS_TEAM_T: LogToFile(g_PathDebug, "Drużyna wygrywająca to TT");
+		case CS_TEAM_CT: LogToFile(g_PathDebug, "Drużyna wygrywająca to CT");
+		default: LogToFile(g_PathDebug, "Drużyny są zbalansowane");
+	}
+#endif
 
 	if(!g_Wart[bMaxSizeTeam]) {
 		if(g_Wart[iRoundNumber] < g_ConVars[ECSwitchAfter][ConVarValue])
@@ -413,11 +451,18 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 
 	GetValidTargets(CS_TEAM_T);
 	GetValidTargets(CS_TEAM_CT);
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "=== TRANSFER ===");
+	LogToFile(g_PathDebug, "Ilość graczy do transferu: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETNumTargets], g_Teams[CS_TEAM_CT][ETNumTargets]);
+#endif
 
 	TBMPrintToChatAll("%t", "TBM Info");
 
 	if(g_Wart[iTeamWinner]) {
 		if(g_Wart[bMaxSizeTeam]) {
+#if defined DEBUG_PLUGIN
+			LogToFile(g_PathDebug, "=== ZBYT DUŻA RÓŻNICA WIELKOŚCI DRUŻYN ===");
+#endif
 			doTransfer();
 		}
 		else {
@@ -469,10 +514,16 @@ TBMPrintToChatAll(const String:sMessage[], any:...) {
 doTransfer() {
 	if(g_Teams[g_Wart[iTeamWinner]][ETSize] <= 1) {
 		TBMPrintToChatAll("%t %t", "No move player", "need players win");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T %T ===", "No move player", LANG_SERVER, "need players win", LANG_SERVER);
+#endif
 		return;
 	}
 	if(g_Teams[g_Wart[iTeamWinner]][ETNumTargets] <= 1) {
 		TBMPrintToChatAll("%t %t", "No move player", "no valid target win");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T %T ===", "No move player", LANG_SERVER, "no valid target win", LANG_SERVER);
+#endif
 		return;
 	}
 
@@ -503,6 +554,9 @@ doTransfer() {
 	}
 	if(!winner || !g_Players[winner][EPIsConnected] || !IsClientInGame(winner)) {
 		TBMPrintToChatAll("%t", "No target");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T ===", "No target", LANG_SERVER);
+#endif
 		return;
 	}
 
@@ -512,6 +566,10 @@ doTransfer() {
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 
 	TBMPrintToChatAll("%t", "Transfer player", winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "KD transferowanego gracza: %.3f", Float:g_Players[winner][EPKDRatio]);
+	LogToFile(g_PathDebug, "%T", "Transfer player", LANG_SERVER, winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
+#endif
 
 	CS_SwitchTeam(winner, (g_Players[winner][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
 	CS_UpdateClientModel(winner);
@@ -522,10 +580,16 @@ doTransfer() {
 doSwitch() {
 	if(g_Teams[g_Wart[iTeamWinner]][ETSize] == 0 || g_Teams[g_Wart[iTeamLoser]][ETSize] == 0) {
 		TBMPrintToChatAll("%t %t", "No switch players", "need players");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T %T ===", "No switch player", LANG_SERVER, "need players", LANG_SERVER);
+#endif
 		return;
 	}
 	if(g_Teams[g_Wart[iTeamWinner]][ETNumTargets] == 0 || g_Teams[g_Wart[iTeamLoser]][ETNumTargets] == 0) {
 		TBMPrintToChatAll("%t %t", "No switch players", "no valid targets");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T %T ===", "No switch player", LANG_SERVER, "no valid target win", LANG_SERVER);
+#endif
 		return;
 	}
 
@@ -546,6 +610,9 @@ doSwitch() {
 	}
 	if(!winner || !loser || !g_Players[winner][EPIsConnected] || !g_Players[loser][EPIsConnected] || !IsClientInGame(winner) || !IsClientInGame(loser)) {
 		TBMPrintToChatAll("%t", "No target");
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== %T ===", "No target", LANG_SERVER);
+#endif
 		return;
 	}
 
@@ -556,6 +623,10 @@ doSwitch() {
 	GetClientName(loser, loserName, MAX_NAME_LENGTH);
 
 	TBMPrintToChatAll("%t", "Switch players", winnerName, loserName);
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "KD zamienianych graczy: Winner - %.3f, Loser - %.3f", Float:g_Players[winner][EPKDRatio], Float:g_Players[loser][EPKDRatio]);
+	LogToFile(g_PathDebug, "%T", "Switch players", LANG_SERVER, winnerName, loserName);
+#endif
 
 	CS_SwitchTeam(winner, (g_Players[winner][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
 	CS_UpdateClientModel(winner);
