@@ -436,6 +436,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 		case CS_TEAM_CT: LogToFile(g_PathDebug, "Drużyna wygrywająca to CT");
 		default: LogToFile(g_PathDebug, "Drużyny są zbalansowane");
 	}
+	LogToFile(g_PathDebug, "============================================");
 #endif
 
 	if(!g_Wart[bMaxSizeTeam]) {
@@ -488,6 +489,9 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 			}
 		}
 	}
+#if defined DEBUG_PLUGIN
+	LogToFile(g_PathDebug, "============================================");
+#endif
 }
 
 TBMPrintToChat(client, const String:sMessage[], any:...) {
