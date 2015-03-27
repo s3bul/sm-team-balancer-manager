@@ -455,14 +455,14 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 
 	GetValidTargets(CS_TEAM_T);
 	GetValidTargets(CS_TEAM_CT);
-#if defined DEBUG_PLUGIN
-	LogToFile(g_PathDebug, "=== TRANSFER ===");
-	LogToFile(g_PathDebug, "Ilość graczy do transferu: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETNumTargets], g_Teams[CS_TEAM_CT][ETNumTargets]);
-#endif
 
 	TBMPrintToChatAll("%t", "TBM Info");
 
 	if(g_Wart[iTeamWinner]) {
+#if defined DEBUG_PLUGIN
+		LogToFile(g_PathDebug, "=== TRANSFER ===");
+		LogToFile(g_PathDebug, "Ilość graczy do transferu: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETNumTargets], g_Teams[CS_TEAM_CT][ETNumTargets]);
+#endif
 		if(g_Wart[bMaxSizeTeam]) {
 #if defined DEBUG_PLUGIN
 			LogToFile(g_PathDebug, "=== ZBYT DUŻA RÓŻNICA WIELKOŚCI DRUŻYN ===");
