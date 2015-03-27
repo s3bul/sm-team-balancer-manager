@@ -31,7 +31,7 @@ enum _:eCvars {
 	ECSwitchMin,
 	ECTypeTransfer,
 	ECTypePoints,
-	ECMultiPoints,
+	ECMultiWins,
 	ECMultiMVP,
 	ECMultiKills,
 	ECMultiAssists,
@@ -127,8 +127,8 @@ public OnPluginStart() {
 		CreateConVar("sm_tbm_type_transfer", "1", "x: Im więcej tym plugin będzie agresywniej reagował", FCVAR_PLUGIN, true, 1.0, true, 3.0));
 	AddConVar(g_ConVars[ECTypePoints], ValueType_Int, OnConVarChange,
 		CreateConVar("sm_tbm_type_points", "0", "0: Tylko fragi; 1: Fragi i asysty; 2: Fragi i punkty; 3: Fragi, asysty i punkty; 4: Tylko punkty; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0, true, 4.0));
-	AddConVar(g_ConVars[ECMultiPoints], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_points", "1", "x: Przez ile mnożyć punkty wygranych rund, itp.", FCVAR_PLUGIN, true, 0.5, true, 5.0));
+	AddConVar(g_ConVars[ECMultiWins], ValueType_Float, OnConVarChange,
+		CreateConVar("sm_tbm_multi_wins", "2", "x: Przez ile mnożyć punkty wygranych rund", FCVAR_PLUGIN, true, 0.5, true, 10.0));
 	AddConVar(g_ConVars[ECMultiMVP], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_multi_mvp", "0.0", "x >= 0: Jak bardzo zwiększać KD graczy za uzyskane gwiazdki mvp; -1: Brak bonusu za mvp; Tylko CS:GO", FCVAR_PLUGIN, true, -1.0));
 	AddConVar(g_ConVars[ECMultiKills], ValueType_Float, OnConVarChange,
@@ -410,8 +410,8 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 	GetKDInTeams();
 	g_Teams[CS_TEAM_T][ETWins] = CS_GetTeamScore(CS_TEAM_T);
 	g_Teams[CS_TEAM_CT][ETWins] = CS_GetTeamScore(CS_TEAM_CT);
-	g_Teams[CS_TEAM_T][ETPoints] = Float:g_Teams[CS_TEAM_T][ETSumKDRatio] + (g_Teams[CS_TEAM_T][ETWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]) + (g_Teams[CS_TEAM_T][ETRowWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]);
-	g_Teams[CS_TEAM_CT][ETPoints] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] + (g_Teams[CS_TEAM_CT][ETWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]) + (g_Teams[CS_TEAM_CT][ETRowWins] * Float:g_ConVars[ECMultiPoints][ConVarValue]);
+	g_Teams[CS_TEAM_T][ETPoints] = Float:g_Teams[CS_TEAM_T][ETSumKDRatio] + (g_Teams[CS_TEAM_T][ETWins] * Float:g_ConVars[ECMultiWins][ConVarValue]) + (g_Teams[CS_TEAM_T][ETRowWins] * Float:g_ConVars[ECMultiWins][ConVarValue]);
+	g_Teams[CS_TEAM_CT][ETPoints] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] + (g_Teams[CS_TEAM_CT][ETWins] * Float:g_ConVars[ECMultiWins][ConVarValue]) + (g_Teams[CS_TEAM_CT][ETRowWins] * Float:g_ConVars[ECMultiWins][ConVarValue]);
 	TeamConditions();
 #if defined DEBUG_PLUGIN
 	LogToFile(g_PathDebug, "Połączeni gracze: %i", GetClientCount());
