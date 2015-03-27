@@ -534,8 +534,8 @@ doTransfer() {
 		return;
 	}
 
-	new Float:closestScore;
-	new toLoser, winner = 0, w;
+	decl toLoser, w, Float:closestScore;
+	new winner;
 
 	if(g_Wart[bMaxSizeTeam]) {
 		closestScore = Float:g_Teams[g_Wart[iTeamWinner]][ETPoints];
@@ -548,7 +548,7 @@ doTransfer() {
 		}
 	}
 	else {
-		new Float:myScore;
+		decl Float:myScore;
 		closestScore = FloatAbs(Float:g_Teams[g_Wart[iTeamWinner]][ETPoints] - Float:g_Teams[g_Wart[iTeamLoser]][ETPoints]);
 		for(w=0; w<g_Teams[g_Wart[iTeamWinner]][ETNumTargets]; ++w) {
 			toLoser = g_Teams[g_Wart[iTeamWinner]][ETValidTargets][w];
@@ -600,9 +600,8 @@ doSwitch() {
 		return;
 	}
 
-	new Float:closestScore = FloatAbs(Float:g_Teams[g_Wart[iTeamWinner]][ETPoints] - Float:g_Teams[g_Wart[iTeamLoser]][ETPoints]);
-	new Float:myScore, toLoser, toWinner;
-	new winner, loser, w, l;
+	decl Float:myScore, toLoser, toWinner, w, l;
+	new winner, loser, Float:closestScore = FloatAbs(Float:g_Teams[g_Wart[iTeamWinner]][ETPoints] - Float:g_Teams[g_Wart[iTeamLoser]][ETPoints]);
 	for(w=0; w<g_Teams[g_Wart[iTeamWinner]][ETNumTargets]; ++w) {
 		toLoser = g_Teams[g_Wart[iTeamWinner]][ETValidTargets][w];
 		for(l=0; l<g_Teams[g_Wart[iTeamLoser]][ETNumTargets]; ++l) {
