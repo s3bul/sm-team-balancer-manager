@@ -491,10 +491,10 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 				}
 			}
 		}
-	}
 #if defined DEBUG_PLUGIN
-	LogToFile(g_PathDebug, "================================================");
+		LogToFile(g_PathDebug, "================================================");
 #endif
+	}
 }
 
 TBMPrintToChat(client, const String:sMessage[], any:...) {
