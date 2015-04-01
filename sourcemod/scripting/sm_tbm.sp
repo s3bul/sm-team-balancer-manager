@@ -88,7 +88,6 @@ enum eValues {
 	bool:bMaxSizeTeam,
 	iRoundNumber,
 	iLastSwitchRound,
-	iMaxPlayers,
 	iTeamWinner,
 	iTeamLoser
 };
@@ -168,11 +167,9 @@ public OnPluginStart() {
 	AddCommandListener(CommandJoinTeam, "jointeam");
 
 	g_Wart[eVersion] = GetEngineVersion();
-	g_Wart[iMaxPlayers] = MAXPLAYERS;
 }
 
 public OnMapStart() {
-	g_Wart[iMaxPlayers] = GetMaxClients();
 	ClearGame();
 #if defined DEBUG_PLUGIN
 	BuildPath(Path_SM, g_PathDebug, PLATFORM_MAX_PATH, "logs/sm_tbm/");
@@ -207,7 +204,6 @@ public OnConfigsExecuted() {
 		SetConVarValue(g_ConVars[ECLimitTeams], g_ConVars[ECLimitTeams][LastConVarValue]);
 	}
 
-	g_Wart[iMaxPlayers] = GetMaxClients();
 	ClearGame();
 }
 
@@ -267,7 +263,6 @@ public OnConVarChange(Handle:conVar, const String:oldValue[], const String:newVa
 }
 
 public OnClientDisconnect_Post(client) {
-	g_Wart[iMaxPlayers] = GetMaxClients();
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPIsBot] = false;
 	g_Players[client][EPIsConnected] = false;
@@ -275,7 +270,6 @@ public OnClientDisconnect_Post(client) {
 }
 
 public OnClientPutInServer(client) {
-	g_Wart[iMaxPlayers] = GetMaxClients();
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerTime][ConVarValue];
 	g_Players[client][EPIsBot] = IsFakeClient(client);
@@ -336,7 +330,7 @@ public Action:CommandJoinTeam(client, const String:command[], argc) {
 			return Plugin_Handled;
 		}
 	}
-	else if(g_Teams[iNewTeam][ETSize] >= g_Wart[iMaxPlayers] / 2 + IntMax(g_ConVars[ECMaxDiff][ConVarValue], 1)) {
+	else if(g_Teams[iNewTeam][ETSize] >= MaxClients / 2 + IntMax(g_ConVars[ECMaxDiff][ConVarValue], 1)) {
 		TBMPrintToChat(client, "%t", "Max size join");
 		TBMShowTeamPanel(client);
 		return Plugin_Handled;
@@ -510,7 +504,7 @@ TBMPrintToChatAll(const String:sMessage[], any:...) {
 	decl String:sTxt[iLen];
 	VFormat(sTxt, iLen, sMessage, 2);
 
-	for(new i=1; i<=g_Wart[iMaxPlayers]; ++i) {
+	for(new i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
 			continue;
 
@@ -651,7 +645,7 @@ ClearGame() {
 
 GetValidTargets(team, bool:deadonly = false) {
 	new num, i, Float:fGameTime = GetEngineTime();
-	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
+	for(i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot]) continue;
 		if(g_Players[i][EPTeam] != team) continue;
 		if(Float:g_Players[i][EPBlockTransfer] > fGameTime) continue;
@@ -741,7 +735,7 @@ GetKDInTeams() {
 	sumMVP = float(GetMVPForPlayersAndSum());
 	checkMVP = bool:(Float:g_ConVars[ECMultiMVP][ConVarValue] >= 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1.0);
 
-	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
+	for(i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot])
 			continue;
 
@@ -848,7 +842,7 @@ GetScoreForPlayers() {
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		return;
 	}
-	for(new i=1; i<=g_Wart[iMaxPlayers]; ++i) {
+	for(new i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
 			continue;
 
@@ -861,7 +855,7 @@ GetMVPForPlayersAndSum() {
 		return 0;
 	}
 	new sum, i;
-	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
+	for(i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
 			continue;
 
@@ -875,7 +869,7 @@ GetCountPlayersInTeams() {
 	SetValueForTeams(ETSize, 0);
 	SetValueForTeams(ETBotSize, 0);
 	new i, num;
-	for(i=1; i<=g_Wart[iMaxPlayers]; ++i) {
+	for(i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || !IsClientInGame(i))
 			continue;
 
