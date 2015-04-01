@@ -7,7 +7,7 @@
 #include <my_admin>
 #include <my_timers>
 
-#define PLUGIN_VERSION "0.9"
+#define PLUGIN_VERSION "0.9.1"
 
 #define DEBUG_PLUGIN
 
