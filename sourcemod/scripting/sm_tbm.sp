@@ -641,6 +641,10 @@ ClearGame() {
 	g_Wart[iRoundNumber] = 0;
 	g_Wart[iLastSwitchRound] = 0;
 	SetValueForTeams(ETRowWins, 0);
+
+	for(new i=1; i<=MAXPLAYERS; ++i) {
+		ClearStatsForPlayer(i);
+	}
 }
 
 GetValidTargets(team, bool:deadonly = false) {
@@ -892,4 +896,8 @@ SetValueForTeams(eTeamData:eData, iVal) {
 
 SetValueForTeamsF(eTeamData:eData, Float:fVal) {
 	g_Teams[CS_TEAM_NONE][eData] = g_Teams[CS_TEAM_SPECTATOR][eData] = g_Teams[CS_TEAM_T][eData] = g_Teams[CS_TEAM_CT][eData] = any:fVal;
+}
+
+ClearStatsForPlayer(client) {
+	g_Players[client][EPKills] = g_Players[client][EPAssists] = g_Players[client][EPDeaths] = 0;
 }
