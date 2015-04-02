@@ -641,6 +641,12 @@ ClearGame() {
 	g_Wart[iRoundNumber] = 0;
 	g_Wart[iLastSwitchRound] = 0;
 	SetValueForTeams(ETRowWins, 0);
+
+	for(new i=1; i<=MAXPLAYERS; ++i) {
+		g_Players[i][EPKills] = 0;
+		g_Players[i][EPAssists] = 0;
+		g_Players[i][EPDeaths] = 0;
+	}
 }
 
 GetValidTargets(team, bool:deadonly = false) {
