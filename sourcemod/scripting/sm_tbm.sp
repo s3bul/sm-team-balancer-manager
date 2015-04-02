@@ -643,9 +643,7 @@ ClearGame() {
 	SetValueForTeams(ETRowWins, 0);
 
 	for(new i=1; i<=MAXPLAYERS; ++i) {
-		g_Players[i][EPKills] = 0;
-		g_Players[i][EPAssists] = 0;
-		g_Players[i][EPDeaths] = 0;
+		ClearStatsForPlayer(i);
 	}
 }
 
@@ -902,4 +900,8 @@ SetValueForTeams(eTeamData:eData, iVal) {
 
 SetValueForTeamsF(eTeamData:eData, Float:fVal) {
 	g_Teams[CS_TEAM_NONE][eData] = g_Teams[CS_TEAM_SPECTATOR][eData] = g_Teams[CS_TEAM_T][eData] = g_Teams[CS_TEAM_CT][eData] = any:fVal;
+}
+
+ClearStatsForPlayer(client) {
+	g_Players[client][EPKills] = g_Players[client][EPAssists] = g_Players[client][EPDeaths] = 0;
 }
