@@ -492,22 +492,24 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 }
 
 TBMPrintToChat(client, const String:sMessage[], any:...) {
-	new iLen = strlen(sMessage)+255;
-	decl String:sTxt[iLen];
-	VFormat(sTxt, iLen, sMessage, 3);
+	decl String:sTxt[192];
+	
+	SetGlobalTransTarget(client);
+	VFormat(sTxt, sizeof(sTxt), sMessage, 3);
 
 	PrintToChat(client, "[TBM] %s", sTxt);
 }
 
 TBMPrintToChatAll(const String:sMessage[], any:...) {
-	new iLen = strlen(sMessage)+255;
-	decl String:sTxt[iLen];
-	VFormat(sTxt, iLen, sMessage, 2);
+	decl String:sTxt[192];
 
 	for(new i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
 			continue;
 
+		SetGlobalTransTarget(i);
+		VFormat(sTxt, sizeof(sTxt), sMessage, 2);
+		
 		PrintToChat(i, "[TBM] %s", sTxt);
 	}
 }
