@@ -7,7 +7,7 @@
 #include <my_admin>
 #include <my_timers>
 
-#define PLUGIN_VERSION "0.9.2"
+#define PLUGIN_VERSION "0.9.3"
 
 #define DEBUG_PLUGIN
 
@@ -348,7 +348,7 @@ public Action:CommandJoinTeam(client, const String:command[], argc) {
 
 TBMShowTeamPanel(client) {
 	if(g_Players[client][EPPanelTimer] != INVALID_HANDLE) CloseTimer(g_Players[client][EPPanelTimer]);
-	g_Players[client][EPPanelTimer] = CreateTimer(0.6, ShowTeamPanel, GetClientSerial(client));
+	g_Players[client][EPPanelTimer] = CreateTimer(0.8, ShowTeamPanel, GetClientSerial(client));
 }
 
 public Action:ShowTeamPanel(Handle:timer, any:serial) {
