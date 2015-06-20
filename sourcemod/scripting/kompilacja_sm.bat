@@ -12,12 +12,12 @@ if "%~1"=="-np" (
 )
 
 rem —cie¾ka do kompilatora
-set compiler=D:\Programy\Source Mod\1.7.1\addons\sourcemod\scripting\spcomp.exe
+set compiler=D:\Programy\Source Mod\1.7.3\addons\sourcemod\scripting\spcomp.exe
 
 if not exist "%compiler%" ( echo Kompilator %compiler% nie istnieje & goto WYJSCIE )
 
 rem —cie¾ka do plik¢w .inc
-set include=D:\Programy\Source Mod\1.7.1\addons\sourcemod\scripting\include
+set include=D:\Programy\Source Mod\1.7.3\addons\sourcemod\scripting\include
 
 rem —cie¾ka do moich plik¢w .inc
 set my_include=E:\Documents\pluginy\sm\include
