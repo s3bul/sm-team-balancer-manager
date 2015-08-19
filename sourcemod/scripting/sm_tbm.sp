@@ -574,8 +574,7 @@ doTransfer() {
 	LogToFile(g_PathDebug, "%T", "Transfer player", LANG_SERVER, winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
 #endif
 
-	CS_SwitchTeam(winner, (g_Players[winner][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
-	CS_UpdateClientModel(winner);
+	SwitchClientTeam(winner);
 
 	g_Players[winner][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerFreq][ConVarValue];
 }
@@ -630,10 +629,8 @@ doSwitch() {
 	LogToFile(g_PathDebug, "%T", "Switch players", LANG_SERVER, winnerName, loserName);
 #endif
 
-	CS_SwitchTeam(winner, (g_Players[winner][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
-	CS_UpdateClientModel(winner);
-	CS_SwitchTeam(loser, (g_Players[loser][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
-	CS_UpdateClientModel(loser);
+	SwitchClientTeam(winner);
+	SwitchClientTeam(loser);
 
 	g_Players[winner][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerFreq][ConVarValue];
 	g_Players[loser][EPBlockTransfer] = Float:g_Players[winner][EPBlockTransfer];
@@ -902,4 +899,14 @@ SetValueForTeamsF(eTeamData:eData, Float:fVal) {
 
 ClearStatsForPlayer(client) {
 	g_Players[client][EPKills] = g_Players[client][EPAssists] = g_Players[client][EPDeaths] = 0;
+}
+
+SwitchClientTeam(client) {
+	if(IsPlayerAlive(client)) {
+		CS_SwitchTeam(client, (g_Players[client][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
+		CS_UpdateClientModel(client);
+	}
+	else {
+		ChangeClientTeam(client, (g_Players[client][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
+	}
 }
