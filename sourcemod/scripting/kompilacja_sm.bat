@@ -36,8 +36,7 @@ rem UWAGA! Na koäcu ˜cie¾ki zawsze musi by† dodany znak \
 rem . oznacza aktualny folder gdzie zostaˆ uruchomiony skrypt
 set output=..\plugins\
 
-rem Usuwanie starych log¢w oraz tworzenie folderu gdzie maj¥ by† wrzucone pliki .smx
-if exist logi.log del logi.log
+rem Tworzenie folderu gdzie maj¥ by† wrzucone pliki .smx
 if "%output%" == ".\" (
 	goto KOMPILACJA
 ) else (
@@ -47,6 +46,9 @@ if "%output%" == ".\" (
 )
 
 :KOMPILACJA
+
+rem Usuwanie starych log¢w
+if exist logi.log del logi.log
 
 if %1X == X (
 	goto KOMPILACJA_ALL
