@@ -1,2 +1,8 @@
+/*
+!/sourcemod/
+/sourcemod/plugins/*
+!/sourcemod/plugins/.gitkeep
+!/.gitignore
+!/LICENSE
+!/README.md
 *.log
-NppProject

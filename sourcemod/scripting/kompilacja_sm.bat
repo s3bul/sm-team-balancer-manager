@@ -11,6 +11,12 @@ if "%~1"=="-np" (
 	shift
 )
 
+set notmulti=0
+if "%~1"=="-nm" (
+	set notmulti=1
+	shift
+)
+
 rem —cie¾ka do kompilatora
 set compiler=D:\Programy\Source Mod\1.7.3\addons\sourcemod\scripting\spcomp.exe
 
@@ -30,8 +36,7 @@ rem UWAGA! Na koäcu ˜cie¾ki zawsze musi by† dodany znak \
 rem . oznacza aktualny folder gdzie zostaˆ uruchomiony skrypt
 set output=..\plugins\
 
-rem Usuwanie starych log¢w oraz tworzenie folderu gdzie maj¥ by† wrzucone pliki .smx
-if exist logi.log del logi.log
+rem Tworzenie folderu gdzie maj¥ by† wrzucone pliki .smx
 if "%output%" == ".\" (
 	goto KOMPILACJA
 ) else (
@@ -41,6 +46,9 @@ if "%output%" == ".\" (
 )
 
 :KOMPILACJA
+
+rem Usuwanie starych log¢w
+if exist logi.log del logi.log
 
 if %1X == X (
 	goto KOMPILACJA_ALL
@@ -74,6 +82,14 @@ echo ****** Plik: %plik% ****** >> logi.log
 
 echo Kompilacja zakoäczona.
 echo Komunikaty z kompilacji znajduj¥ si© w pliku logi.log
+
+if %notmulti% == 1 goto WYJSCIE
+
+set multicompile=n
+set /p multicompile=Wykona† ponown¥ kompilacj©? [t/n] (domy˜lnie - n): 
+set multicompile=%multicompile:T=t%
+
+if %multicompile% == t echo. && goto KOMPILACJA
 
 :WYJSCIE
 
