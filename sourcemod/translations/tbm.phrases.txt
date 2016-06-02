@@ -72,4 +72,16 @@
 		"en"			"Maximum team size difference prohibits team join."
 		"pl"			"Maksymalna rożnica w wielkościach drużyn zabrania dołączenia do wybranej."
 	}
+	"Need transfer player"
+	{
+		"#format"	"{1:s}"
+		"en"			"Too many admins. I suggest move {1}."
+		"pl"			"Zbyt dużo adminów. Proponuję przenieść gracza {1}."
+	}
+	"Need switch players"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"			"Too many admins. I suggest replace {1} with {2}."
+		"pl"			"Zbyt dużo adminów. Proponuję zamienić gracza {1} z {2}."
+	}
 }
