@@ -57,6 +57,7 @@ enum eTeamData {
 	ETRowWins,
 	ETSize,
 	ETBotSize,
+	ETAdminSize,
 	ETCond,
 	ETKills,
 	ETAssists,
@@ -79,6 +80,7 @@ enum ePlayerData {
 	EPTeam,
 	bool:EPIsBot,
 	bool:EPIsConnected,
+	bool:EPIsAdmin,
 	Handle:EPPanelTimer
 };
 
@@ -274,6 +276,8 @@ public OnClientPutInServer(client) {
 	g_Players[client][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerTime][ConVarValue];
 	g_Players[client][EPIsBot] = IsFakeClient(client);
 	g_Players[client][EPIsConnected] = true;
+	new adminId = GetUserAdmin(client);
+	g_Players[client][EPIsAdmin] = bool:(adminId != INVALID_ADMIN_ID && GetAdminFlag(adminId, Admin_Generic));
 }
 
 public Action:CommandJoinTeam(client, const String:command[], argc) {
