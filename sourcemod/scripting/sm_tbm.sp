@@ -454,9 +454,6 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 
 		if(g_Teams[CS_TEAM_T][ETSize]+g_Teams[CS_TEAM_CT][ETSize] < g_ConVars[ECSwitchMin][ConVarValue])
 			return;
-
-		if(g_ConVars[ECLimitAdmins][ConVarValue] > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > g_ConVars[ECLimitAdmins][ConVarValue])
-			return;
 	}
 
 	GetValidTargets(CS_TEAM_T);
@@ -594,6 +591,11 @@ doTransfer() {
 	decl String:winnerName[MAX_NAME_LENGTH];
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 
+	if(g_ConVars[ECLimitAdmins][ConVarValue] > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > g_ConVars[ECLimitAdmins][ConVarValue]) {
+		TBMPrintToChatAdmins("%t", "Need transfer player", winnerName);
+		return;
+	}
+
 	TBMPrintToChatAll("%t", "Transfer player", winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
 #if defined DEBUG_PLUGIN
 	LogToFile(g_PathDebug, "KD transferowanego gracza: %.3f", Float:g_Players[winner][EPKDRatio]);
@@ -648,6 +650,11 @@ doSwitch() {
 	decl String:winnerName[MAX_NAME_LENGTH], String:loserName[MAX_NAME_LENGTH];
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 	GetClientName(loser, loserName, MAX_NAME_LENGTH);
+
+	if(g_ConVars[ECLimitAdmins][ConVarValue] > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > g_ConVars[ECLimitAdmins][ConVarValue]) {
+		TBMPrintToChatAdmins("%t", "Need switch players", winnerName, loserName);
+		return;
+	}
 
 	TBMPrintToChatAll("%t", "Switch players", winnerName, loserName);
 #if defined DEBUG_PLUGIN
