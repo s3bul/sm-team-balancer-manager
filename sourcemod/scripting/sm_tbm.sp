@@ -46,6 +46,7 @@ enum _:eCvars {
 	ECLimitJoin,
 	ECLimitAfter,
 	ECLimitMin,
+	ECLimitAdmins,
 	ECAutoTeamBalance,
 	ECLimitTeams
 };
@@ -150,7 +151,7 @@ public OnPluginStart() {
 	AddConVar(g_ConVars[ECImmunityFlags], ValueType_Flag, OnConVarChange,
 		CreateConVar("sm_tbm_immunity_flags", "", "x: Jakie flagi musi posiadać admin aby mieć immunitet; blank: Obojętnie jaka flaga", FCVAR_PLUGIN));
 	AddConVar(g_ConVars[ECPlayerFreq], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_player_freq", "180", "x: Co ile sekund może przerzucać tego samego gracza", FCVAR_PLUGIN, true, 0.0));
+		CreateConVar("sm_tbm_player_freq", "200", "x: Co ile sekund może przerzucać tego samego gracza", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECPlayerTime], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_player_time", "120", "x: Po ilu sekundach po wejściu na serwer gracz może być przenoszony", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECLimitJoin], ValueType_Bool, OnConVarChange,
@@ -159,6 +160,8 @@ public OnPluginStart() {
 		CreateConVar("sm_tbm_limit_after", "0", "x: Po ilu rundach ograniczać dołączanie", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECLimitMin], ValueType_Int, OnConVarChange,
 		CreateConVar("sm_tbm_limit_min", "1", "x: Minimalna liczba graczy, kiedy zaczyna się ograniczanie dołączania", FCVAR_PLUGIN, true, 0.0));
+	AddConVar(g_ConVars[ECLimitAdmins], ValueType_Int, OnConVarChange,
+		CreateConVar("sm_tbm_limit_admins", "-1", "x >= 0: Wyłączaj przerzucanie graczy gdy na serwerze jest więcej adminów od wartości tego cvara; -1: Brak sprawdzania ilości adminów", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECAutoTeamBalance], ValueType_Bool, OnConVarChange,
 		FindConVar("mp_autoteambalance"));
 	AddConVar(g_ConVars[ECLimitTeams], ValueType_Int, OnConVarChange,
@@ -449,6 +452,9 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 			return;
 
 		if(g_Teams[CS_TEAM_T][ETSize]+g_Teams[CS_TEAM_CT][ETSize] < g_ConVars[ECSwitchMin][ConVarValue])
+			return;
+
+		if(g_ConVars[ECLimitAdmins][ConVarValue] > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > g_ConVars[ECLimitAdmins][ConVarValue])
 			return;
 	}
 
