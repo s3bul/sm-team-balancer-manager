@@ -268,6 +268,7 @@ public OnClientDisconnect_Post(client) {
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPIsBot] = false;
 	g_Players[client][EPIsConnected] = false;
+	g_Players[client][EPIsAdmin] = false;
 	g_Players[client][EPPanelTimer] = INVALID_HANDLE;
 }
 
@@ -871,6 +872,7 @@ GetMVPForPlayersAndSum() {
 GetCountPlayersInTeams() {
 	SetValueForTeams(ETSize, 0);
 	SetValueForTeams(ETBotSize, 0);
+	SetValueForTeams(ETAdminSize, 0);
 	new i, num;
 	for(i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || !IsClientInGame(i))
@@ -878,6 +880,7 @@ GetCountPlayersInTeams() {
 
 		++g_Teams[g_Players[i][EPTeam]][ETBotSize];
 		if(!g_Players[i][EPIsBot]) ++g_Teams[g_Players[i][EPTeam]][ETSize];
+		if(g_Players[i][EPIsAdmin]) ++g_Teams[g_Players[i][EPTeam]][ETAdminSize];
 		++num;
 	}
 	return num;
