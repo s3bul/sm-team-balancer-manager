@@ -161,7 +161,7 @@ public OnPluginStart() {
 	AddConVar(g_ConVars[ECLimitMin], ValueType_Int, OnConVarChange,
 		CreateConVar("sm_tbm_limit_min", "1", "x: Minimalna liczba graczy, kiedy zaczyna się ograniczanie dołączania", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECLimitAdmins], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_limit_admins", "-1", "x >= 0: Wyłączaj przerzucanie graczy gdy na serwerze jest więcej adminów od wartości tego cvara; -1: Brak sprawdzania ilości adminów", FCVAR_PLUGIN, true, 0.0));
+		CreateConVar("sm_tbm_limit_admins", "-1", "x >= 0: Wyłączaj przerzucanie graczy gdy na serwerze jest więcej adminów od wartości tego cvara; -1: Brak sprawdzania ilości adminów", FCVAR_PLUGIN, true, -1.0));
 	AddConVar(g_ConVars[ECAutoTeamBalance], ValueType_Bool, OnConVarChange,
 		FindConVar("mp_autoteambalance"));
 	AddConVar(g_ConVars[ECLimitTeams], ValueType_Int, OnConVarChange,
