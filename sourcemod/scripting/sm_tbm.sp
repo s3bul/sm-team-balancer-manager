@@ -46,6 +46,7 @@ enum _:eCvars {
 	ECLimitJoin,
 	ECLimitAfter,
 	ECLimitMin,
+	ECLimitAdmins,
 	ECAutoTeamBalance,
 	ECLimitTeams
 };
@@ -57,6 +58,7 @@ enum eTeamData {
 	ETRowWins,
 	ETSize,
 	ETBotSize,
+	ETAdminSize,
 	ETCond,
 	ETKills,
 	ETAssists,
@@ -79,6 +81,7 @@ enum ePlayerData {
 	EPTeam,
 	bool:EPIsBot,
 	bool:EPIsConnected,
+	bool:EPIsAdmin,
 	Handle:EPPanelTimer
 };
 
@@ -148,7 +151,7 @@ public OnPluginStart() {
 	AddConVar(g_ConVars[ECImmunityFlags], ValueType_Flag, OnConVarChange,
 		CreateConVar("sm_tbm_immunity_flags", "", "x: Jakie flagi musi posiadać admin aby mieć immunitet; blank: Obojętnie jaka flaga", FCVAR_PLUGIN));
 	AddConVar(g_ConVars[ECPlayerFreq], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_player_freq", "180", "x: Co ile sekund może przerzucać tego samego gracza", FCVAR_PLUGIN, true, 0.0));
+		CreateConVar("sm_tbm_player_freq", "200", "x: Co ile sekund może przerzucać tego samego gracza", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECPlayerTime], ValueType_Float, OnConVarChange,
 		CreateConVar("sm_tbm_player_time", "120", "x: Po ilu sekundach po wejściu na serwer gracz może być przenoszony", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECLimitJoin], ValueType_Bool, OnConVarChange,
@@ -157,6 +160,8 @@ public OnPluginStart() {
 		CreateConVar("sm_tbm_limit_after", "0", "x: Po ilu rundach ograniczać dołączanie", FCVAR_PLUGIN, true, 0.0));
 	AddConVar(g_ConVars[ECLimitMin], ValueType_Int, OnConVarChange,
 		CreateConVar("sm_tbm_limit_min", "1", "x: Minimalna liczba graczy, kiedy zaczyna się ograniczanie dołączania", FCVAR_PLUGIN, true, 0.0));
+	AddConVar(g_ConVars[ECLimitAdmins], ValueType_Int, OnConVarChange,
+		CreateConVar("sm_tbm_limit_admins", "-1", "x >= 0: Wyłączaj przerzucanie graczy gdy na serwerze jest więcej adminów od wartości tego cvara; -1: Brak sprawdzania ilości adminów", FCVAR_PLUGIN, true, -1.0));
 	AddConVar(g_ConVars[ECAutoTeamBalance], ValueType_Bool, OnConVarChange,
 		FindConVar("mp_autoteambalance"));
 	AddConVar(g_ConVars[ECLimitTeams], ValueType_Int, OnConVarChange,
@@ -266,6 +271,7 @@ public OnClientDisconnect_Post(client) {
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPIsBot] = false;
 	g_Players[client][EPIsConnected] = false;
+	g_Players[client][EPIsAdmin] = false;
 	g_Players[client][EPPanelTimer] = INVALID_HANDLE;
 }
 
@@ -274,6 +280,8 @@ public OnClientPutInServer(client) {
 	g_Players[client][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerTime][ConVarValue];
 	g_Players[client][EPIsBot] = IsFakeClient(client);
 	g_Players[client][EPIsConnected] = true;
+	new AdminId:adminId = GetUserAdmin(client);
+	g_Players[client][EPIsAdmin] = bool:(adminId != INVALID_ADMIN_ID && GetAdminFlag(adminId, Admin_Generic));
 }
 
 public Action:CommandJoinTeam(client, const String:command[], argc) {
@@ -413,6 +421,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 #if defined DEBUG_PLUGIN
 	LogToFile(g_PathDebug, "Połączeni gracze: %i (max: %i)", GetClientCount(), MaxClients);
 	LogToFile(g_PathDebug, "Wielkość drużyn: TT - %i(%i), CT - %i(%i)", g_Teams[CS_TEAM_T][ETSize], g_Teams[CS_TEAM_T][ETBotSize], g_Teams[CS_TEAM_CT][ETSize], g_Teams[CS_TEAM_CT][ETBotSize]);
+	LogToFile(g_PathDebug, "Admini: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETAdminSize], g_Teams[CS_TEAM_CT][ETAdminSize]);
 	LogToFile(g_PathDebug, "Suma zabić drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETKills], g_Teams[CS_TEAM_CT][ETKills]);
 	LogToFile(g_PathDebug, "Suma śmierci drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETDeaths], g_Teams[CS_TEAM_CT][ETDeaths]);
 	if(g_Wart[eVersion] == Engine_CSGO) {
@@ -493,7 +502,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 
 TBMPrintToChat(client, const String:sMessage[], any:...) {
 	decl String:sTxt[192];
-	
+
 	SetGlobalTransTarget(client);
 	VFormat(sTxt, sizeof(sTxt), sMessage, 3);
 
@@ -509,7 +518,21 @@ TBMPrintToChatAll(const String:sMessage[], any:...) {
 
 		SetGlobalTransTarget(i);
 		VFormat(sTxt, sizeof(sTxt), sMessage, 2);
-		
+
+		PrintToChat(i, "[TBM] %s", sTxt);
+	}
+}
+
+TBMPrintToChatAdmins(const String:sMessage[], any:...) {
+	decl String:sTxt[192];
+
+	for(new i=1; i<=MaxClients; ++i) {
+		if(!g_Players[i][EPIsAdmin] || !g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
+			continue;
+
+		SetGlobalTransTarget(i);
+		VFormat(sTxt, sizeof(sTxt), sMessage, 2);
+
 		PrintToChat(i, "[TBM] %s", sTxt);
 	}
 }
@@ -568,6 +591,11 @@ doTransfer() {
 	decl String:winnerName[MAX_NAME_LENGTH];
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 
+	if(g_ConVars[ECLimitAdmins][ConVarValue] > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > g_ConVars[ECLimitAdmins][ConVarValue]) {
+		TBMPrintToChatAdmins("%t", "Need transfer player", winnerName);
+		return;
+	}
+
 	TBMPrintToChatAll("%t", "Transfer player", winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
 #if defined DEBUG_PLUGIN
 	LogToFile(g_PathDebug, "KD transferowanego gracza: %.3f", Float:g_Players[winner][EPKDRatio]);
@@ -622,6 +650,11 @@ doSwitch() {
 	decl String:winnerName[MAX_NAME_LENGTH], String:loserName[MAX_NAME_LENGTH];
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 	GetClientName(loser, loserName, MAX_NAME_LENGTH);
+
+	if(g_ConVars[ECLimitAdmins][ConVarValue] > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > g_ConVars[ECLimitAdmins][ConVarValue]) {
+		TBMPrintToChatAdmins("%t", "Need switch players", winnerName, loserName);
+		return;
+	}
 
 	TBMPrintToChatAll("%t", "Switch players", winnerName, loserName);
 #if defined DEBUG_PLUGIN
@@ -867,6 +900,7 @@ GetMVPForPlayersAndSum() {
 GetCountPlayersInTeams() {
 	SetValueForTeams(ETSize, 0);
 	SetValueForTeams(ETBotSize, 0);
+	SetValueForTeams(ETAdminSize, 0);
 	new i, num;
 	for(i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || !IsClientInGame(i))
@@ -874,6 +908,7 @@ GetCountPlayersInTeams() {
 
 		++g_Teams[g_Players[i][EPTeam]][ETBotSize];
 		if(!g_Players[i][EPIsBot]) ++g_Teams[g_Players[i][EPTeam]][ETSize];
+		if(g_Players[i][EPIsAdmin]) ++g_Teams[g_Players[i][EPTeam]][ETAdminSize];
 		++num;
 	}
 	return num;
