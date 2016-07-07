@@ -1,17 +1,16 @@
 #pragma semicolon 1
+#pragma newdecls required
 
 #include <sourcemod>
-#include <convar>
 #include <cstrike>
 
 #include <my_admin>
-#include <my_timers>
 
 #define PLUGIN_VERSION "1.0.0"
 
 #define DEBUG_PLUGIN
 
-public Plugin:myinfo = {
+public Plugin myinfo = {
 	name				= "Team Balancer Manager",
 	author			= "Sebul",
 	description	= "Balans drużyn",
@@ -95,12 +94,12 @@ enum eValues {
 	iTeamLoser
 };
 
-new g_Wart[eValues];
-new g_ConVars[eCvars][ConVar];
-new g_Teams[CS_TEAM_CT+1][eTeamData];
-new g_Players[MAXPLAYERS+1][ePlayerData];
+int g_Wart[eValues];
+ConVar g_ConVars[eCvars];
+int g_Teams[CS_TEAM_CT+1][eTeamData];
+int g_Players[MAXPLAYERS+1][ePlayerData];
 #if defined DEBUG_PLUGIN
-new String:g_PathDebug[PLATFORM_MAX_PATH];
+char g_PathDebug[PLATFORM_MAX_PATH];
 #endif
 
 public OnPluginStart() {
@@ -108,64 +107,35 @@ public OnPluginStart() {
 
 	CreateConVar("sm_tbm_version", PLUGIN_VERSION, "Plugin version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 
-	AddConVar(g_ConVars[ECEnabled], ValueType_Bool, OnConVarChange,
-		CreateConVar("sm_tbm_enabled", "1", "0: Plugin OFF; 1: ON", FCVAR_PLUGIN, true, 0.0, true, 1.0));
-	AddConVar(g_ConVars[ECMaxSize], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_max_size", "0", "x: Maksymalna liczba członków w drużynie; 0: Ustal automatycznie", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECMaxDiff], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_max_diff", "2", "x: Maksymalna różnica w liczbie członków w drużynie", FCVAR_PLUGIN, true, 1.0));
-	AddConVar(g_ConVars[ECMaxCond], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_max_cond", "3", "x: Im więcej tym plugin będzie rzadziej reagował", FCVAR_PLUGIN, true, 2.0, true, 8.0));
-	AddConVar(g_ConVars[ECMaxScore], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_max_score", "2", "x: Maksymalna dozwolona różnica w wyniku gry", FCVAR_PLUGIN, true, 1.0));
-	AddConVar(g_ConVars[ECMaxStreak], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_max_streak", "2", "x: Maksymalna dowzolona ilość wygranych rund z rzędu", FCVAR_PLUGIN, true, 1.0));
-	AddConVar(g_ConVars[ECSwitchAfter], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_switch_after", "2", "x: Liczba rund po których zaczyna się transferowanie", FCVAR_PLUGIN, true, 1.0));
-	AddConVar(g_ConVars[ECSwitchFreq], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_switch_freq", "2", "x: Co ile rund ma przerzucać graczy", FCVAR_PLUGIN, true, 1.0));
-	AddConVar(g_ConVars[ECSwitchMin], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_switch_min", "3", "x: Minimalna liczba graczy na mapie, kiedy zaczyna się transferowanie", FCVAR_PLUGIN, true, 2.0));
-	AddConVar(g_ConVars[ECTypeTransfer], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_type_transfer", "1", "x: Im więcej tym plugin będzie agresywniej reagował", FCVAR_PLUGIN, true, 1.0, true, 3.0));
-	AddConVar(g_ConVars[ECTypePoints], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_type_points", "0", "0: Tylko fragi; 1: Fragi i asysty; 2: Fragi i punkty; 3: Fragi, asysty i punkty; 4: Tylko punkty; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0, true, 4.0));
-	AddConVar(g_ConVars[ECMultiWins], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_wins", "2", "x: Przez ile mnożyć punkty wygranych rund", FCVAR_PLUGIN, true, 0.5, true, 10.0));
-	AddConVar(g_ConVars[ECMultiRowWins], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_row_wins", "1", "x: Przez ile mnożyć punkty wygranych rund z rzędu", FCVAR_PLUGIN, true, 0.5, true, 10.0));
-	AddConVar(g_ConVars[ECMultiMVP], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_mvp", "0.0", "x >= 0: Jak bardzo zwiększać KD graczy za uzyskane gwiazdki mvp; -1: Brak bonusu za mvp; Tylko CS:GO", FCVAR_PLUGIN, true, -1.0));
-	AddConVar(g_ConVars[ECMultiKills], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_kills", "0.0", "x > 0: Przez ile mnożyć fragi graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECMultiAssists], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_assists", "0.0", "x > 0: Przez ile mnożyć asysty graczy przy liczeniu KD; 0: Standardowo; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECMultiDeaths], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_deaths", "0.0", "x > 0: Przez ile mnożyć śmierci graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECMultiScore], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_multi_score", "0.0", "x > 0: Przez ile mnożyć punkty graczy przy liczeniu KD; 0: Standardowo; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECImmunitySwitch], ValueType_Bool, OnConVarChange,
-		CreateConVar("sm_tbm_immunity_switch", "0", "1: Admini będą pomijani w działaniach TBM", FCVAR_PLUGIN, true, 0.0, true, 1.0));
-	AddConVar(g_ConVars[ECImmunityJoin], ValueType_Bool, OnConVarChange,
-		CreateConVar("sm_tbm_immunity_join", "0", "1: Admini będą pomijani przy dołączaniu do drużyn", FCVAR_PLUGIN, true, 0.0, true, 1.0));
-	AddConVar(g_ConVars[ECImmunityFlags], ValueType_Flag, OnConVarChange,
-		CreateConVar("sm_tbm_immunity_flags", "", "x: Jakie flagi musi posiadać admin aby mieć immunitet; blank: Obojętnie jaka flaga", FCVAR_PLUGIN));
-	AddConVar(g_ConVars[ECPlayerFreq], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_player_freq", "200", "x: Co ile sekund może przerzucać tego samego gracza", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECPlayerTime], ValueType_Float, OnConVarChange,
-		CreateConVar("sm_tbm_player_time", "120", "x: Po ilu sekundach po wejściu na serwer gracz może być przenoszony", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECLimitJoin], ValueType_Bool, OnConVarChange,
-		CreateConVar("sm_tbm_limit_join", "1", "1: Ograniczaj dołączanie do drużyn", FCVAR_PLUGIN, true, 0.0, true, 1.0));
-	AddConVar(g_ConVars[ECLimitAfter], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_limit_after", "0", "x: Po ilu rundach ograniczać dołączanie", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECLimitMin], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_limit_min", "1", "x: Minimalna liczba graczy, kiedy zaczyna się ograniczanie dołączania", FCVAR_PLUGIN, true, 0.0));
-	AddConVar(g_ConVars[ECLimitAdmins], ValueType_Int, OnConVarChange,
-		CreateConVar("sm_tbm_limit_admins", "-1", "x >= 0: Wyłączaj przerzucanie graczy gdy na serwerze jest więcej adminów od wartości tego cvara; -1: Brak sprawdzania ilości adminów", FCVAR_PLUGIN, true, -1.0));
-	AddConVar(g_ConVars[ECAutoTeamBalance], ValueType_Bool, OnConVarChange,
-		FindConVar("mp_autoteambalance"));
-	AddConVar(g_ConVars[ECLimitTeams], ValueType_Int, OnConVarChange,
-		FindConVar("mp_limitteams"));
+	g_ConVars[ECEnabled] = CreateConVar("sm_tbm_enabled", "1", "0: Plugin OFF; 1: ON", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	g_ConVars[ECMaxSize] = CreateConVar("sm_tbm_max_size", "0", "x: Maksymalna liczba członków w drużynie; 0: Ustal automatycznie", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECMaxDiff] = CreateConVar("sm_tbm_max_diff", "2", "x: Maksymalna różnica w liczbie członków w drużynie", FCVAR_PLUGIN, true, 1.0);
+	g_ConVars[ECMaxCond] = CreateConVar("sm_tbm_max_cond", "3", "x: Im więcej tym plugin będzie rzadziej reagował", FCVAR_PLUGIN, true, 2.0, true, 8.0);
+	g_ConVars[ECMaxScore] = CreateConVar("sm_tbm_max_score", "2", "x: Maksymalna dozwolona różnica w wyniku gry", FCVAR_PLUGIN, true, 1.0);
+	g_ConVars[ECMaxStreak] = CreateConVar("sm_tbm_max_streak", "2", "x: Maksymalna dowzolona ilość wygranych rund z rzędu", FCVAR_PLUGIN, true, 1.0);
+	g_ConVars[ECSwitchAfter] = CreateConVar("sm_tbm_switch_after", "2", "x: Liczba rund po których zaczyna się transferowanie", FCVAR_PLUGIN, true, 1.0);
+	g_ConVars[ECSwitchFreq] = CreateConVar("sm_tbm_switch_freq", "2", "x: Co ile rund ma przerzucać graczy", FCVAR_PLUGIN, true, 1.0);
+	g_ConVars[ECSwitchMin] = CreateConVar("sm_tbm_switch_min", "3", "x: Minimalna liczba graczy na mapie, kiedy zaczyna się transferowanie", FCVAR_PLUGIN, true, 2.0);
+	g_ConVars[ECTypeTransfer] = CreateConVar("sm_tbm_type_transfer", "1", "x: Im więcej tym plugin będzie agresywniej reagował", FCVAR_PLUGIN, true, 1.0, true, 3.0);
+	g_ConVars[ECTypePoints] = CreateConVar("sm_tbm_type_points", "0", "0: Tylko fragi; 1: Fragi i asysty; 2: Fragi i punkty; 3: Fragi, asysty i punkty; 4: Tylko punkty; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0, true, 4.0);
+	g_ConVars[ECMultiWins] = CreateConVar("sm_tbm_multi_wins", "2", "x: Przez ile mnożyć punkty wygranych rund", FCVAR_PLUGIN, true, 0.5, true, 10.0);
+	g_ConVars[ECMultiRowWins] = CreateConVar("sm_tbm_multi_row_wins", "1", "x: Przez ile mnożyć punkty wygranych rund z rzędu", FCVAR_PLUGIN, true, 0.5, true, 10.0);
+	g_ConVars[ECMultiMVP] = CreateConVar("sm_tbm_multi_mvp", "0.0", "x >= 0: Jak bardzo zwiększać KD graczy za uzyskane gwiazdki mvp; -1: Brak bonusu za mvp; Tylko CS:GO", FCVAR_PLUGIN, true, -1.0);
+	g_ConVars[ECMultiKills] = CreateConVar("sm_tbm_multi_kills", "0.0", "x > 0: Przez ile mnożyć fragi graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECMultiAssists] = CreateConVar("sm_tbm_multi_assists", "0.0", "x > 0: Przez ile mnożyć asysty graczy przy liczeniu KD; 0: Standardowo; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECMultiDeaths] = CreateConVar("sm_tbm_multi_deaths", "0.0", "x > 0: Przez ile mnożyć śmierci graczy przy liczeniu KD; 0: Standardowo", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECMultiScore] = CreateConVar("sm_tbm_multi_score", "0.0", "x > 0: Przez ile mnożyć punkty graczy przy liczeniu KD; 0: Standardowo; Tylko CS:GO", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECImmunitySwitch] = CreateConVar("sm_tbm_immunity_switch", "0", "1: Admini będą pomijani w działaniach TBM", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	g_ConVars[ECImmunityJoin] = CreateConVar("sm_tbm_immunity_join", "0", "1: Admini będą pomijani przy dołączaniu do drużyn", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	g_ConVars[ECImmunityFlags] = CreateConVar("sm_tbm_immunity_flags", "", "x: Jakie flagi musi posiadać admin aby mieć immunitet; blank: Obojętnie jaka flaga", FCVAR_PLUGIN);
+	g_ConVars[ECPlayerFreq] = CreateConVar("sm_tbm_player_freq", "200", "x: Co ile sekund może przerzucać tego samego gracza", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECPlayerTime] = CreateConVar("sm_tbm_player_time", "120", "x: Po ilu sekundach po wejściu na serwer gracz może być przenoszony", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECLimitJoin] = CreateConVar("sm_tbm_limit_join", "1", "1: Ograniczaj dołączanie do drużyn", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	g_ConVars[ECLimitAfter] = CreateConVar("sm_tbm_limit_after", "0", "x: Po ilu rundach ograniczać dołączanie", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECLimitMin] = CreateConVar("sm_tbm_limit_min", "1", "x: Minimalna liczba graczy, kiedy zaczyna się ograniczanie dołączania", FCVAR_PLUGIN, true, 0.0);
+	g_ConVars[ECLimitAdmins] = CreateConVar("sm_tbm_limit_admins", "-1", "x >= 0: Wyłączaj przerzucanie graczy gdy na serwerze jest więcej adminów od wartości tego cvara; -1: Brak sprawdzania ilości adminów", FCVAR_PLUGIN, true, -1.0);
+	g_ConVars[ECAutoTeamBalance] = FindConVar("mp_autoteambalance");
+	g_ConVars[ECLimitTeams] = FindConVar("mp_limitteams");
 
 	AutoExecConfig(true, "sm_tbm");
 
