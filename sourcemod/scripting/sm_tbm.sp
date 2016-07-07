@@ -1,8 +1,9 @@
 #pragma semicolon 1
-#pragma newdecls required
 
 #include <sourcemod>
 #include <cstrike>
+
+#pragma newdecls required
 
 #include <my_admin>
 
@@ -18,7 +19,7 @@ public Plugin myinfo = {
 	url				= "http://www.CsDonald.pl"
 };
 
-enum _:eCvars {
+enum eCvars {
 	ECEnabled = 0,
 	ECMaxSize,
 	ECMaxDiff,
@@ -96,17 +97,19 @@ enum eValues {
 
 int g_Wart[eValues];
 ConVar g_ConVars[eCvars];
+ConVar TestC[20];
 int g_Teams[CS_TEAM_CT+1][eTeamData];
 int g_Players[MAXPLAYERS+1][ePlayerData];
 #if defined DEBUG_PLUGIN
 char g_PathDebug[PLATFORM_MAX_PATH];
 #endif
 
-public OnPluginStart() {
+public void OnPluginStart() {
 	LoadTranslations("tbm.phrases");
 
 	CreateConVar("sm_tbm_version", PLUGIN_VERSION, "Plugin version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 
+	TestC[0] = CreateConVar("sm_tbm_enabled2", "1", "0: Plugin OFF; 1: ON", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	g_ConVars[ECEnabled] = CreateConVar("sm_tbm_enabled", "1", "0: Plugin OFF; 1: ON", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	g_ConVars[ECMaxSize] = CreateConVar("sm_tbm_max_size", "0", "x: Maksymalna liczba członków w drużynie; 0: Ustal automatycznie", FCVAR_PLUGIN, true, 0.0);
 	g_ConVars[ECMaxDiff] = CreateConVar("sm_tbm_max_diff", "2", "x: Maksymalna różnica w liczbie członków w drużynie", FCVAR_PLUGIN, true, 1.0);
