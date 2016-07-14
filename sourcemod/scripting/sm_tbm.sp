@@ -11,6 +11,9 @@
 
 #define DEBUG_PLUGIN
 
+#define int(%1)		view_as<int>(%1)
+#define view-%1(%2)	view_as<%1>(%2)
+
 public Plugin myinfo = {
 	name				= "Team Balancer Manager",
 	author			= "Sebul",
@@ -95,9 +98,28 @@ enum eValues {
 	iTeamLoser
 };
 
-int g_Wart[eValues];
 ConVar g_ConVars[eCvars];
-ConVar TestC[20];
+
+methodmap PluginCvar {
+	public PluginCvar(eCvars cvarindex) {
+		return view-PluginCvar(cvarindex);
+	}
+	property eCvars index {
+		public get() {
+			return view-eCvars(this);
+		}
+	}
+	property ConVar cvar {
+		public get() {
+			return g_ConVars[this.index];
+		}
+		public set(ConVar cvarhandle) {
+			g_ConVars[this.index] = cvarhandle;
+		}
+	}
+}
+
+int g_Wart[eValues];
 int g_Teams[CS_TEAM_CT+1][eTeamData];
 int g_Players[MAXPLAYERS+1][ePlayerData];
 #if defined DEBUG_PLUGIN
@@ -109,7 +131,7 @@ public void OnPluginStart() {
 
 	CreateConVar("sm_tbm_version", PLUGIN_VERSION, "Plugin version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 
-	TestC[0] = CreateConVar("sm_tbm_enabled2", "1", "0: Plugin OFF; 1: ON", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	PluginCvar(ECEnabled).cvar = CreateConVar("sm_tbm_enabled", "1", "0: Plugin OFF; 1: ON", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	g_ConVars[ECEnabled] = CreateConVar("sm_tbm_enabled", "1", "0: Plugin OFF; 1: ON", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	g_ConVars[ECMaxSize] = CreateConVar("sm_tbm_max_size", "0", "x: Maksymalna liczba członków w drużynie; 0: Ustal automatycznie", FCVAR_PLUGIN, true, 0.0);
 	g_ConVars[ECMaxDiff] = CreateConVar("sm_tbm_max_diff", "2", "x: Maksymalna różnica w liczbie członków w drużynie", FCVAR_PLUGIN, true, 1.0);
