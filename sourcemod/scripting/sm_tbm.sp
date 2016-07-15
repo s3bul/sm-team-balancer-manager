@@ -315,33 +315,33 @@ void UnhookEventsForPlugin() {
 }
 
 public void OnConVarChange(ConVar convar, char[] oldValue, char[] newValue) {
-	if(conVar == g_ConVars[ECEnabled][ConVarHandle]) {
-		new check = CheckToggleConVarValue(g_ConVars[ECEnabled]);
+	if(convar == PluginCvar(ECEnabled).handle) {
+		new check = PluginCvar(ECEnabled).CheckToggle();
 		if(check == 1) {
-			if(!g_Wart[bEventsHooked]) HookEventsForPlugin();
-			if(g_ConVars[ECAutoTeamBalance][ConVarValue]) {
-				g_ConVars[ECAutoTeamBalance][LastConVarValue] = g_ConVars[ECAutoTeamBalance][ConVarValue];
-				SetConVarValue(g_ConVars[ECAutoTeamBalance], false);
+			if(g_Wart[bEventsHooked] == false) HookEventsForPlugin();
+			if(PluginCvar(ECAutoTeamBalance).handle.BoolValue == true) {
+				PluginCvar(ECAutoTeamBalance).BoolLast = PluginCvar(ECAutoTeamBalance).handle.BoolValue;
+				PluginCvar(ECAutoTeamBalance).handle.BoolValue = false;
 			}
-			if(g_ConVars[ECLimitTeams][ConVarValue] > 0) {
-				g_ConVars[ECLimitTeams][LastConVarValue] = g_ConVars[ECLimitTeams][ConVarValue];
-				SetConVarValue(g_ConVars[ECLimitTeams], g_ConVars[ECMaxDiff][ConVarValue]);
+			if(PluginCvar(ECLimitTeams).handle.IntValue > 0) {
+				PluginCvar(ECLimitTeams).IntLast = PluginCvar(ECLimitTeams).handle.IntValue;
+				PluginCvar(ECLimitTeams).handle.IntValue = PluginCvar(ECMaxDiff).handle.IntValue;
 			}
 		}
 		else if(check == -1) {
-			if(g_Wart[bEventsHooked]) UnhookEventsForPlugin();
-			SetConVarValue(g_ConVars[ECAutoTeamBalance], g_ConVars[ECAutoTeamBalance][LastConVarValue]);
-			SetConVarValue(g_ConVars[ECLimitTeams], g_ConVars[ECLimitTeams][LastConVarValue]);
+			if(g_Wart[bEventsHooked] == true) UnhookEventsForPlugin();
+			PluginCvar(ECAutoTeamBalance).handle.BoolValue = PluginCvar(ECAutoTeamBalance).BoolLast;
+			PluginCvar(ECLimitTeams).handle.IntValue = PluginCvar(ECLimitTeams).IntLast;
 		}
 	}
-	else if(conVar == g_ConVars[ECAutoTeamBalance][ConVarHandle]) {
-		if(CheckToggleConVarValue(g_ConVars[ECAutoTeamBalance]) == 1) {
-			SetConVarValue(g_ConVars[ECAutoTeamBalance], false);
+	else if(convar == PluginCvar(ECAutoTeamBalance).handle) {
+		if(PluginCvar(ECAutoTeamBalance).CheckToggle() == 1) {
+			PluginCvar(ECAutoTeamBalance).handle.BoolValue = false;
 		}
 	}
-	else if(conVar == g_ConVars[ECLimitTeams][ConVarHandle]) {
-		if(g_ConVars[ECLimitTeams][ConVarValue] != g_ConVars[ECMaxDiff][ConVarValue]) {
-			SetConVarValue(g_ConVars[ECLimitTeams], g_ConVars[ECMaxDiff][ConVarValue]);
+	else if(convar == PluginCvar(ECLimitTeams).handle) {
+		if(PluginCvar(ECLimitTeams).handle.IntValue != PluginCvar(ECMaxDiff).handle.IntValue) {
+			PluginCvar(ECLimitTeams).handle.IntValue = PluginCvar(ECMaxDiff).handle.IntValue;
 		}
 	}
 }
