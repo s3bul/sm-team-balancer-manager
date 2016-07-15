@@ -24,7 +24,7 @@ public Plugin myinfo = {
 };
 
 enum eCvars {
-	ECEnabled = 0,
+	ECEnabled,
 	ECMaxSize,
 	ECMaxDiff,
 	ECMaxCond,
@@ -159,13 +159,7 @@ methodmap PluginCvar {
 		return (this.handle.BoolValue != this.BoolPrev || this.handle.IntValue != this.IntPrev || FloatCompare(this.handle.FloatValue, this.FloatPrev) != 0 || this.handle.Flags != this.FlagPrev);
 	}
 	public int CheckToggle() {
-		if(this.handle.BoolValue == false && this.BoolPrev == true) {
-			return -1;
-		}
-		else if(this.handle.BoolValue == true && this.BoolPrev == false) {
-			return 1;
-		}
-		return 0;
+		return int(this.handle.BoolValue) - int(this.BoolPrev);
 	}
 }
 
