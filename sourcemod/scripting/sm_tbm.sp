@@ -73,6 +73,7 @@ methodmap PluginCvar {
 		}
 		public set(ConVar cvarhandle) {
 			g_ConVars[this.index] = cvarhandle;
+			g_ConVars[this.index].GetDefault(g_ConVarsLastValue[this.index], MAX_LAST_LENGTH);
 			g_ConVars[this.index].AddChangeHook(OnConVarChange);
 		}
 	}
@@ -230,8 +231,8 @@ public void OnConfigsExecuted() {
 	}
 	else {
 		if(g_Wart[bEventsHooked] == true) UnhookEventsForPlugin();
-		SetConVarValue(g_ConVars[ECAutoTeamBalance], g_ConVars[ECAutoTeamBalance][LastConVarValue]);
-		SetConVarValue(g_ConVars[ECLimitTeams], g_ConVars[ECLimitTeams][LastConVarValue]);
+		PluginCvar(ECAutoTeamBalance).handle.BoolValue = PluginCvar(ECAutoTeamBalance).BoolLast;
+		PluginCvar(ECLimitTeams).handle.IntValue = PluginCvar(ECLimitTeams).IntLast;
 	}
 
 	ClearGame();
