@@ -54,50 +54,6 @@ enum eCvars {
 	ECLimitTeams
 };
 
-enum eTeamData {
-	ETValidTargets[MAXPLAYERS],
-	ETNumTargets,
-	ETWins,
-	ETRowWins,
-	ETSize,
-	ETBotSize,
-	ETAdminSize,
-	ETCond,
-	ETKills,
-	ETAssists,
-	ETDeaths,
-	ETScore,
-	ETMVP,
-	Float:ETKDRatio,
-	Float:ETSumKDRatio,
-	Float:ETPoints
-};
-
-enum ePlayerData {
-	EPKills,
-	EPAssists,
-	EPDeaths,
-	EPScore,
-	EPMVP,
-	Float:EPKDRatio,
-	Float:EPBlockTransfer,
-	EPTeam,
-	bool:EPIsBot,
-	bool:EPIsConnected,
-	bool:EPIsAdmin,
-	Handle:EPPanelTimer
-};
-
-enum eValues {
-	EngineVersion:eVersion,
-	bool:bEventsHooked,
-	bool:bMaxSizeTeam,
-	iRoundNumber,
-	iLastSwitchRound,
-	iTeamWinner,
-	iTeamLoser
-};
-
 ConVar g_ConVars[eCvars];
 
 methodmap PluginCvar {
@@ -120,9 +76,55 @@ methodmap PluginCvar {
 	}
 }
 
-int g_Wart[eValues];
+enum eTeamData {
+	ETValidTargets[MAXPLAYERS],
+	ETNumTargets,
+	ETWins,
+	ETRowWins,
+	ETSize,
+	ETBotSize,
+	ETAdminSize,
+	ETCond,
+	ETKills,
+	ETAssists,
+	ETDeaths,
+	ETScore,
+	ETMVP,
+	Float:ETKDRatio,
+	Float:ETSumKDRatio,
+	Float:ETPoints
+};
+
 int g_Teams[CS_TEAM_CT+1][eTeamData];
+
+enum ePlayerData {
+	EPKills,
+	EPAssists,
+	EPDeaths,
+	EPScore,
+	EPMVP,
+	Float:EPKDRatio,
+	Float:EPBlockTransfer,
+	EPTeam,
+	bool:EPIsBot,
+	bool:EPIsConnected,
+	bool:EPIsAdmin,
+	Handle:EPPanelTimer
+};
+
 int g_Players[MAXPLAYERS+1][ePlayerData];
+
+enum eValues {
+	EngineVersion:eVersion,
+	bool:bEventsHooked,
+	bool:bMaxSizeTeam,
+	iRoundNumber,
+	iLastSwitchRound,
+	iTeamWinner,
+	iTeamLoser
+};
+
+int g_Wart[eValues];
 #if defined DEBUG_PLUGIN
 char g_PathDebug[PLATFORM_MAX_PATH];
 #endif
