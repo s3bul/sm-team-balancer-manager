@@ -13,7 +13,7 @@
 
 #define int(%1) view_as<int>(%1)
 #define view(%1,%2) view_as<%1>(%2)
-#define MAX_LAST_LENGTH 128
+#define MAX_CVAR_LENGTH 128
 
 public Plugin myinfo = {
 	name				= "Team Balancer Manager",
@@ -56,7 +56,8 @@ enum eCvars {
 };
 
 ConVar g_ConVars[eCvars];
-char g_ConVarsLastValue[eCvars][MAX_LAST_LENGTH];
+char g_ConVarsLastValue[eCvars][MAX_CVAR_LENGTH];
+char g_ConVarsPrevValue[eCvars][MAX_CVAR_LENGTH];
 
 methodmap PluginCvar {
 	public PluginCvar(eCvars cvarindex) {
@@ -73,7 +74,8 @@ methodmap PluginCvar {
 		}
 		public set(ConVar cvarhandle) {
 			g_ConVars[this.index] = cvarhandle;
-			g_ConVars[this.index].GetDefault(g_ConVarsLastValue[this.index], MAX_LAST_LENGTH);
+			g_ConVars[this.index].GetDefault(g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH);
+			g_ConVars[this.index].GetDefault(g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH);
 			g_ConVars[this.index].AddChangeHook(OnConVarChange);
 		}
 	}
@@ -82,7 +84,7 @@ methodmap PluginCvar {
 			return view(bool, StringToInt(g_ConVarsLastValue[this.index]));
 		}
 		public set(bool value) {
-			IntToString(int(value), g_ConVarsLastValue[this.index], MAX_LAST_LENGTH);
+			IntToString(int(value), g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH);
 		}
 	}
 	property int IntLast {
@@ -90,7 +92,7 @@ methodmap PluginCvar {
 			return StringToInt(g_ConVarsLastValue[this.index]);
 		}
 		public set(int value) {
-			IntToString(value, g_ConVarsLastValue[this.index], MAX_LAST_LENGTH);
+			IntToString(value, g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH);
 		}
 	}
 	property float FloatLast {
@@ -98,14 +100,72 @@ methodmap PluginCvar {
 			return StringToFloat(g_ConVarsLastValue[this.index]);
 		}
 		public set(float value) {
-			FloatToString(value, g_ConVarsLastValue[this.index], MAX_LAST_LENGTH);
+			FloatToString(value, g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH);
 		}
 	}
-	public int GetLast(char[] value, int len) {
+	property int FlagLast {
+		public get() {
+			return ReadFlagString(g_ConVarsLastValue[this.index]);
+		}
+		public set(int value) {
+			FindFlagString(value, g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH);
+		}
+	}
+	property bool BoolPrev {
+		public get() {
+			return view(bool, StringToInt(g_ConVarsPrevValue[this.index]));
+		}
+		public set(bool value) {
+			IntToString(int(value), g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH);
+		}
+	}
+	property int IntPrev {
+		public get() {
+			return StringToInt(g_ConVarsPrevValue[this.index]);
+		}
+		public set(int value) {
+			IntToString(value, g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH);
+		}
+	}
+	property float FloatPrev {
+		public get() {
+			return StringToFloat(g_ConVarsPrevValue[this.index]);
+		}
+		public set(float value) {
+			FloatToString(value, g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH);
+		}
+	}
+	property int FlagPrev {
+		public get() {
+			return ReadFlagString(g_ConVarsPrevValue[this.index]);
+		}
+		public set(int value) {
+			FindFlagString(value, g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH);
+		}
+	}
+	public int GetLast(char[] value, const int len) {
 		return strcopy(value, len, g_ConVarsLastValue[this.index]);
 	}
 	public int SetLast(const char[] value) {
-		return strcopy(g_ConVarsLastValue[this.index], MAX_LAST_LENGTH, value);
+		return strcopy(g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH, value);
+	}
+	public int GetPrev(char[] value, const int len) {
+		return strcopy(value, len, g_ConVarsPrevValue[this.index]);
+	}
+	public int SetPrev(const char[] value) {
+		return strcopy(g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH, value);
+	}
+	public bool IsChanged() {
+		return (this.handle.BoolValue != this.BoolPrev || this.handle.IntValue != this.IntPrev || FloatCompare(this.handle.FloatValue, this.FloatPrev) != 0 || this.handle.Flags != this.FlagPrev);
+	}
+	public int CheckToggle() {
+		if(this.handle.BoolValue == false && this.BoolPrev == true) {
+			return -1;
+		}
+		else if(this.handle.BoolValue == true && this.BoolPrev == false) {
+			return 1;
+		}
+		return 0;
 	}
 }
 
@@ -238,7 +298,7 @@ public void OnConfigsExecuted() {
 	ClearGame();
 }
 
-HookEventsForPlugin() {
+void HookEventsForPlugin() {
 	HookEvent("player_team", EventPlayerTeam);
 	HookEvent("player_death", EventPlayerDeath);
 	HookEvent("round_end", EventRoundEnd);
@@ -246,7 +306,7 @@ HookEventsForPlugin() {
 	g_Wart[bEventsHooked] = true;
 }
 
-UnhookEventsForPlugin() {
+void UnhookEventsForPlugin() {
 	UnhookEvent("player_team", EventPlayerTeam);
 	UnhookEvent("player_death", EventPlayerDeath);
 	UnhookEvent("round_end", EventRoundEnd);
@@ -254,7 +314,7 @@ UnhookEventsForPlugin() {
 	g_Wart[bEventsHooked] = false;
 }
 
-public OnConVarChange(Handle:conVar, const String:oldValue[], const String:newValue[]) {
+public void OnConVarChange(ConVar convar, char[] oldValue, char[] newValue) {
 	if(conVar == g_ConVars[ECEnabled][ConVarHandle]) {
 		new check = CheckToggleConVarValue(g_ConVars[ECEnabled]);
 		if(check == 1) {
