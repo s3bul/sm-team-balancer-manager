@@ -11,8 +11,9 @@
 
 #define DEBUG_PLUGIN
 
-#define int(%1)		view_as<int>(%1)
-#define view(%1,%2)	view_as<%1>(%2)
+#define int(%1) view_as<int>(%1)
+#define view(%1,%2) view_as<%1>(%2)
+#define MAX_LAST_LENGTH 128
 
 public Plugin myinfo = {
 	name				= "Team Balancer Manager",
@@ -55,6 +56,7 @@ enum eCvars {
 };
 
 ConVar g_ConVars[eCvars];
+char g_ConVarsLastValue[eCvars][MAX_LAST_LENGTH];
 
 methodmap PluginCvar {
 	public PluginCvar(eCvars cvarindex) {
@@ -73,6 +75,36 @@ methodmap PluginCvar {
 			g_ConVars[this.index] = cvarhandle;
 			g_ConVars[this.index].AddChangeHook(OnConVarChange);
 		}
+	}
+	property bool BoolLast {
+		public get() {
+			return view(bool, StringToInt(g_ConVarsLastValue[this.index]));
+		}
+		public set(bool value) {
+			IntToString(int(value), g_ConVarsLastValue[this.index], MAX_LAST_LENGTH);
+		}
+	}
+	property int IntLast {
+		public get() {
+			return StringToInt(g_ConVarsLastValue[this.index]);
+		}
+		public set(int value) {
+			IntToString(value, g_ConVarsLastValue[this.index], MAX_LAST_LENGTH);
+		}
+	}
+	property float FloatLast {
+		public get() {
+			return StringToFloat(g_ConVarsLastValue[this.index]);
+		}
+		public set(float value) {
+			FloatToString(value, g_ConVarsLastValue[this.index], MAX_LAST_LENGTH);
+		}
+	}
+	public int GetLast(char[] value, int len) {
+		return strcopy(value, len, g_ConVarsLastValue[this.index]);
+	}
+	public int SetLast(const char[] value) {
+		return strcopy(g_ConVarsLastValue[this.index], MAX_LAST_LENGTH, value);
 	}
 }
 
@@ -185,19 +217,19 @@ public void OnMapStart() {
 }
 
 public void OnConfigsExecuted() {
-	if(g_ConVars[ECEnabled][ConVarValue]) {
-		if(!g_Wart[bEventsHooked]) HookEventsForPlugin();
-		if(g_ConVars[ECAutoTeamBalance][ConVarValue]) {
-			g_ConVars[ECAutoTeamBalance][LastConVarValue] = g_ConVars[ECAutoTeamBalance][ConVarValue];
-			SetConVarValue(g_ConVars[ECAutoTeamBalance], false);
+	if(PluginCvar(ECEnabled).handle.BoolValue == true) {
+		if(g_Wart[bEventsHooked] == false) HookEventsForPlugin();
+		if(PluginCvar(ECAutoTeamBalance).handle.BoolValue == true) {
+			PluginCvar(ECAutoTeamBalance).BoolLast = PluginCvar(ECAutoTeamBalance).handle.BoolValue;
+			PluginCvar(ECAutoTeamBalance).handle.BoolValue = false;
 		}
-		if(g_ConVars[ECLimitTeams][ConVarValue] > 0) {
-			g_ConVars[ECLimitTeams][LastConVarValue] = g_ConVars[ECLimitTeams][ConVarValue];
-			SetConVarValue(g_ConVars[ECLimitTeams], g_ConVars[ECMaxDiff][ConVarValue]);
+		if(PluginCvar(ECLimitTeams).handle.IntValue > 0) {
+			PluginCvar(ECLimitTeams).IntLast = PluginCvar(ECLimitTeams).handle.IntValue;
+			PluginCvar(ECLimitTeams).handle.IntValue = PluginCvar(ECMaxDiff).handle.IntValue;
 		}
 	}
 	else {
-		if(g_Wart[bEventsHooked]) UnhookEventsForPlugin();
+		if(g_Wart[bEventsHooked] == true) UnhookEventsForPlugin();
 		SetConVarValue(g_ConVars[ECAutoTeamBalance], g_ConVars[ECAutoTeamBalance][LastConVarValue]);
 		SetConVarValue(g_ConVars[ECLimitTeams], g_ConVars[ECLimitTeams][LastConVarValue]);
 	}
