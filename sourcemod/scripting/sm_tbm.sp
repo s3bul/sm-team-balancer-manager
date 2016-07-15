@@ -115,6 +115,7 @@ methodmap PluginCvar {
 		}
 		public set(ConVar cvarhandle) {
 			g_ConVars[this.index] = cvarhandle;
+			g_ConVars[this.index].AddChangeHook(OnConVarChange);
 		}
 	}
 }
@@ -175,17 +176,13 @@ public void OnMapStart() {
 	if(!DirExists(g_PathDebug)) {
 		CreateDirectory(g_PathDebug, FPERM_U_READ + FPERM_U_WRITE + FPERM_U_EXEC + FPERM_G_READ + FPERM_G_WRITE + FPERM_G_EXEC);
 	}
-	decl String:sTmp[64];
+	char sTmp[64];
 	FormatTime(sTmp, 64, "debug_%Y%m%d.log");
 	StrCat(g_PathDebug, PLATFORM_MAX_PATH, sTmp);
 #endif
 }
 
-public OnConfigsExecuted() {
-	for(new i=0; i<eCvars; ++i) {
-		UpdateConVarValue(g_ConVars[i]);
-	}
-
+public void OnConfigsExecuted() {
 	if(g_ConVars[ECEnabled][ConVarValue]) {
 		if(!g_Wart[bEventsHooked]) HookEventsForPlugin();
 		if(g_ConVars[ECAutoTeamBalance][ConVarValue]) {
@@ -223,13 +220,6 @@ UnhookEventsForPlugin() {
 }
 
 public OnConVarChange(Handle:conVar, const String:oldValue[], const String:newValue[]) {
-	for(new i=0; i<eCvars; ++i) {
-		if(conVar == g_ConVars[i][ConVarHandle]) {
-			UpdateConVarValue(g_ConVars[i]);
-			break;
-		}
-	}
-
 	if(conVar == g_ConVars[ECEnabled][ConVarHandle]) {
 		new check = CheckToggleConVarValue(g_ConVars[ECEnabled]);
 		if(check == 1) {
