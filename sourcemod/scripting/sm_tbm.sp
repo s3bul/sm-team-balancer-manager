@@ -7,7 +7,7 @@
 
 #include <my_admin>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.0.0-beta"
 
 #define DEBUG_PLUGIN
 
