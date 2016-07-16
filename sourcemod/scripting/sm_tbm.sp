@@ -157,7 +157,7 @@ public void OnMapStart() {
 	ClearGame();
 #if defined DEBUG_PLUGIN
 	BuildPath(Path_SM, g_PathDebug, PLATFORM_MAX_PATH, "logs/sm_tbm/");
-	if(!DirExists(g_PathDebug)) {
+	if(DirExists(g_PathDebug) == false) {
 		CreateDirectory(g_PathDebug, FPERM_U_READ + FPERM_U_WRITE + FPERM_U_EXEC + FPERM_G_READ + FPERM_G_WRITE + FPERM_G_EXEC);
 	}
 	char sTmp[64];
