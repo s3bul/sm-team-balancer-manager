@@ -309,8 +309,15 @@ void UnhookEventsForPlugin() {
 }
 
 public void OnConVarChange(ConVar convar, char[] oldValue, char[] newValue) {
+	for(int i=0,iCvars=int(eCvars); i<iCvars; ++i) {
+		eCvars cvarId = view(eCvars, i);
+		if(convar == PluginCvar(cvarId).handle) {
+			PluginCvar(cvarId).SetPrev(oldValue);
+			break;
+		}
+	}
 	if(convar == PluginCvar(ECEnabled).handle) {
-		new check = PluginCvar(ECEnabled).CheckToggle();
+		int check = PluginCvar(ECEnabled).CheckToggle();
 		if(check == 1) {
 			if(g_Wart[bEventsHooked] == false) HookEventsForPlugin();
 			if(PluginCvar(ECAutoTeamBalance).handle.BoolValue == true) {
@@ -340,7 +347,7 @@ public void OnConVarChange(ConVar convar, char[] oldValue, char[] newValue) {
 	}
 }
 
-public OnClientDisconnect_Post(client) {
+public void OnClientDisconnect_Post(client) {
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPIsBot] = false;
 	g_Players[client][EPIsConnected] = false;
@@ -348,9 +355,9 @@ public OnClientDisconnect_Post(client) {
 	g_Players[client][EPPanelTimer] = INVALID_HANDLE;
 }
 
-public OnClientPutInServer(client) {
+public void OnClientPutInServer(client) {
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
-	g_Players[client][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerTime][ConVarValue];
+	g_Players[client][EPBlockTransfer] = GetEngineTime() + PluginCvar(ECPlayerTime).handle.FloatValue;
 	g_Players[client][EPIsBot] = IsFakeClient(client);
 	g_Players[client][EPIsConnected] = true;
 	new AdminId:adminId = GetUserAdmin(client);
@@ -358,22 +365,22 @@ public OnClientPutInServer(client) {
 }
 
 public Action:CommandJoinTeam(client, const String:command[], argc) {
-	if(!g_ConVars[ECEnabled][ConVarValue] || !g_ConVars[ECLimitJoin][ConVarValue])
+	if(PluginCvar(ECEnabled).handle.BoolValue == false || PluginCvar(ECLimitJoin).handle.BoolValue == false)
 		return Plugin_Continue;
 
 	if(g_Players[client][EPIsBot])
 		return Plugin_Continue;
 
-	if(g_ConVars[ECImmunityJoin][ConVarValue] && (GetUserFlagBits(client) & g_ConVars[ECImmunityFlags][ConVarValue]))
+	if(PluginCvar(ECImmunityJoin).handle.BoolValue == true && (GetUserFlagBits(client) & PluginCvar(ECImmunityFlags).handle.Flags))
 		return Plugin_Continue;
 
-	if(g_ConVars[ECLimitAfter][ConVarValue] > 0) {
-		if(g_Wart[iRoundNumber] <= g_ConVars[ECLimitAfter][ConVarValue])
+	if(PluginCvar(ECLimitAfter).handle.IntValue > 0) {
+		if(g_Wart[iRoundNumber] <= PluginCvar(ECLimitAfter).handle.IntValue)
 			return Plugin_Continue;
 	}
 
 	GetCountPlayersInTeams();
-	if(g_Teams[CS_TEAM_T][ETSize]+g_Teams[CS_TEAM_CT][ETSize] < g_ConVars[ECLimitMin][ConVarValue])
+	if(g_Teams[CS_TEAM_T][ETSize]+g_Teams[CS_TEAM_CT][ETSize] < PluginCvar(ECLimitMin).handle.IntValue)
 		return Plugin_Continue;
 
 	decl String:text[32];
@@ -404,21 +411,21 @@ public Action:CommandJoinTeam(client, const String:command[], argc) {
 		return Plugin_Handled;
 	}
 
-	if(g_ConVars[ECMaxSize][ConVarValue] > 0) {
-		if(g_Teams[iNewTeam][ETSize] >= g_ConVars[ECMaxSize][ConVarValue]) {
+	if(PluginCvar(ECMaxSize).handle.IntValue > 0) {
+		if(g_Teams[iNewTeam][ETSize] >= PluginCvar(ECMaxSize).handle.IntValue) {
 			TBMPrintToChat(client, "%t", "Max size join");
 			TBMShowTeamPanel(client);
 			return Plugin_Handled;
 		}
 	}
-	else if(g_Teams[iNewTeam][ETSize] >= MaxClients / 2 + IntMax(g_ConVars[ECMaxDiff][ConVarValue], 1)) {
+	else if(g_Teams[iNewTeam][ETSize] >= MaxClients / 2 + IntMax(PluginCvar(ECMaxDiff).handle.IntValue, 1)) {
 		TBMPrintToChat(client, "%t", "Max size join");
 		TBMShowTeamPanel(client);
 		return Plugin_Handled;
 	}
 
 	new iOpTeam = (iNewTeam == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T;
-	if(g_Teams[iNewTeam][ETSize]-g_Teams[iOpTeam][ETSize] >= g_ConVars[ECMaxDiff][ConVarValue]) {
+	if(g_Teams[iNewTeam][ETSize]-g_Teams[iOpTeam][ETSize] >= PluginCvar(ECMaxDiff).handle.IntValue) {
 		TBMPrintToChat(client, "%t", "Max diff join");
 		TBMShowTeamPanel(client);
 		return Plugin_Handled;
@@ -481,15 +488,15 @@ public EventRoundEnd(Handle:event, const String:name[], bool:dontBroadcast) {
 }
 
 public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadcast) {
-	if(!g_ConVars[ECEnabled][ConVarValue])
+	if(PluginCvar(ECEnabled).handle.BoolValue == false)
 		return;
 
 	GetCountPlayersInTeams();
 	GetKDInTeams();
 	g_Teams[CS_TEAM_T][ETWins] = CS_GetTeamScore(CS_TEAM_T);
 	g_Teams[CS_TEAM_CT][ETWins] = CS_GetTeamScore(CS_TEAM_CT);
-	g_Teams[CS_TEAM_T][ETPoints] = Float:g_Teams[CS_TEAM_T][ETSumKDRatio] + (g_Teams[CS_TEAM_T][ETWins] * Float:g_ConVars[ECMultiWins][ConVarValue]) + (g_Teams[CS_TEAM_T][ETRowWins] * Float:g_ConVars[ECMultiRowWins][ConVarValue]);
-	g_Teams[CS_TEAM_CT][ETPoints] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] + (g_Teams[CS_TEAM_CT][ETWins] * Float:g_ConVars[ECMultiWins][ConVarValue]) + (g_Teams[CS_TEAM_CT][ETRowWins] * Float:g_ConVars[ECMultiRowWins][ConVarValue]);
+	g_Teams[CS_TEAM_T][ETPoints] = Float:g_Teams[CS_TEAM_T][ETSumKDRatio] + (g_Teams[CS_TEAM_T][ETWins] * PluginCvar(ECMultiWins).handle.FloatValue) + (g_Teams[CS_TEAM_T][ETRowWins] * PluginCvar(ECMultiRowWins).handle.FloatValue);
+	g_Teams[CS_TEAM_CT][ETPoints] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] + (g_Teams[CS_TEAM_CT][ETWins] * PluginCvar(ECMultiWins).handle.FloatValue) + (g_Teams[CS_TEAM_CT][ETRowWins] * PluginCvar(ECMultiRowWins).handle.FloatValue);
 	TeamConditions();
 #if defined DEBUG_PLUGIN
 	LogToFile(g_PathDebug, "Połączeni gracze: %i (max: %i)", GetClientCount(), MaxClients);
@@ -519,13 +526,13 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 #endif
 
 	if(!g_Wart[bMaxSizeTeam]) {
-		if(g_Wart[iRoundNumber] < g_ConVars[ECSwitchAfter][ConVarValue])
+		if(g_Wart[iRoundNumber] < PluginCvar(ECSwitchAfter).handle.IntValue)
 			return;
 
-		if(g_Wart[iRoundNumber]-g_Wart[iLastSwitchRound] < g_ConVars[ECSwitchFreq][ConVarValue])
+		if(g_Wart[iRoundNumber]-g_Wart[iLastSwitchRound] < PluginCvar(ECSwitchFreq).handle.IntValue)
 			return;
 
-		if(g_Teams[CS_TEAM_T][ETSize]+g_Teams[CS_TEAM_CT][ETSize] < g_ConVars[ECSwitchMin][ConVarValue])
+		if(g_Teams[CS_TEAM_T][ETSize]+g_Teams[CS_TEAM_CT][ETSize] < PluginCvar(ECSwitchMin).handle.IntValue)
 			return;
 	}
 
@@ -546,9 +553,9 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 			doTransfer();
 		}
 		else {
-			switch(g_ConVars[ECTypeTransfer][ConVarValue]) {
+			switch(PluginCvar(ECTypeTransfer).handle.IntValue) {
 				case 3: {
-					if(g_Teams[g_Wart[iTeamWinner]][ETBotSize]+RoundToCeil(g_ConVars[ECMaxDiff][ConVarValue] * 0.5) < g_Teams[g_Wart[iTeamLoser]][ETBotSize])
+					if(g_Teams[g_Wart[iTeamWinner]][ETBotSize]+RoundToCeil(PluginCvar(ECMaxDiff).handle.IntValue * 0.5) < g_Teams[g_Wart[iTeamLoser]][ETBotSize])
 						doSwitch();
 					else
 						doTransfer();
@@ -664,7 +671,7 @@ doTransfer() {
 	decl String:winnerName[MAX_NAME_LENGTH];
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 
-	if(g_ConVars[ECLimitAdmins][ConVarValue] > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > g_ConVars[ECLimitAdmins][ConVarValue]) {
+	if(PluginCvar(ECLimitAdmins).handle.IntValue > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > PluginCvar(ECLimitAdmins).handle.IntValue) {
 		TBMPrintToChatAdmins("%t", "Need transfer player", winnerName);
 		return;
 	}
@@ -677,7 +684,7 @@ doTransfer() {
 
 	SwitchClientTeam(winner);
 
-	g_Players[winner][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerFreq][ConVarValue];
+	g_Players[winner][EPBlockTransfer] = GetEngineTime() + PluginCvar(ECPlayerFreq).handle.FloatValue;
 }
 
 doSwitch() {
@@ -724,7 +731,7 @@ doSwitch() {
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 	GetClientName(loser, loserName, MAX_NAME_LENGTH);
 
-	if(g_ConVars[ECLimitAdmins][ConVarValue] > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > g_ConVars[ECLimitAdmins][ConVarValue]) {
+	if(PluginCvar(ECLimitAdmins).handle.IntValue > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > PluginCvar(ECLimitAdmins).handle.IntValue) {
 		TBMPrintToChatAdmins("%t", "Need switch players", winnerName, loserName);
 		return;
 	}
@@ -738,8 +745,8 @@ doSwitch() {
 	SwitchClientTeam(winner);
 	SwitchClientTeam(loser);
 
-	g_Players[winner][EPBlockTransfer] = GetEngineTime() + Float:g_ConVars[ECPlayerFreq][ConVarValue];
-	g_Players[loser][EPBlockTransfer] = Float:g_Players[winner][EPBlockTransfer];
+	g_Players[winner][EPBlockTransfer] = GetEngineTime() + PluginCvar(ECPlayerFreq).handle.FloatValue;
+	g_Players[loser][EPBlockTransfer] = view(float, g_Players[winner][EPBlockTransfer]);
 }
 
 ClearGame() {
@@ -760,7 +767,7 @@ GetValidTargets(team, bool:deadonly = false) {
 		if(Float:g_Players[i][EPBlockTransfer] > fGameTime) continue;
 		if(!IsClientInGame(i)) continue;
 
-		if(g_ConVars[ECImmunitySwitch][ConVarValue] && (GetUserFlagBits(i) & g_ConVars[ECImmunityFlags][ConVarValue])) continue;
+		if(PluginCvar(ECImmunitySwitch).handle.BoolValue == true && (GetUserFlagBits(i) & PluginCvar(ECImmunityFlags).handle.Flags)) continue;
 		if(deadonly && IsPlayerAlive(i)) continue;
 
 		g_Teams[team][ETValidTargets][num++] = i;
@@ -772,13 +779,13 @@ GetValidTargets(team, bool:deadonly = false) {
 TeamConditions() {
 	g_Wart[bMaxSizeTeam] = false;
 
-	if(g_Teams[CS_TEAM_T][ETSize]-g_Teams[CS_TEAM_CT][ETSize] > g_ConVars[ECMaxDiff][ConVarValue]) {
+	if(g_Teams[CS_TEAM_T][ETSize]-g_Teams[CS_TEAM_CT][ETSize] > PluginCvar(ECMaxDiff).handle.IntValue) {
 		g_Wart[iTeamWinner] = CS_TEAM_T;
 		g_Wart[iTeamLoser] = CS_TEAM_CT;
 		g_Wart[bMaxSizeTeam] = true;
 		return;
 	}
-	if(g_Teams[CS_TEAM_CT][ETSize]-g_Teams[CS_TEAM_T][ETSize] > g_ConVars[ECMaxDiff][ConVarValue]) {
+	if(g_Teams[CS_TEAM_CT][ETSize]-g_Teams[CS_TEAM_T][ETSize] > PluginCvar(ECMaxDiff).handle.IntValue) {
 		g_Wart[iTeamWinner] = CS_TEAM_CT;
 		g_Wart[iTeamLoser] = CS_TEAM_T;
 		g_Wart[bMaxSizeTeam] = true;
@@ -787,15 +794,15 @@ TeamConditions() {
 
 	SetValueForTeams(ETCond, 0);
 
-	if(g_Teams[CS_TEAM_T][ETWins]-g_Teams[CS_TEAM_CT][ETWins] > g_ConVars[ECMaxScore][ConVarValue])
-		g_Teams[CS_TEAM_T][ETCond] += g_Teams[CS_TEAM_T][ETWins]-g_Teams[CS_TEAM_CT][ETWins]-g_ConVars[ECMaxScore][ConVarValue];
-	else if(g_Teams[CS_TEAM_CT][ETWins]-g_Teams[CS_TEAM_T][ETWins] > g_ConVars[ECMaxScore][ConVarValue])
-		g_Teams[CS_TEAM_CT][ETCond] += g_Teams[CS_TEAM_CT][ETWins]-g_Teams[CS_TEAM_T][ETWins]-g_ConVars[ECMaxScore][ConVarValue];
+	if(g_Teams[CS_TEAM_T][ETWins]-g_Teams[CS_TEAM_CT][ETWins] > PluginCvar(ECMaxScore).handle.IntValue)
+		g_Teams[CS_TEAM_T][ETCond] += g_Teams[CS_TEAM_T][ETWins]-g_Teams[CS_TEAM_CT][ETWins]-PluginCvar(ECMaxScore).handle.IntValue;
+	else if(g_Teams[CS_TEAM_CT][ETWins]-g_Teams[CS_TEAM_T][ETWins] > PluginCvar(ECMaxScore).handle.IntValue)
+		g_Teams[CS_TEAM_CT][ETCond] += g_Teams[CS_TEAM_CT][ETWins]-g_Teams[CS_TEAM_T][ETWins]-PluginCvar(ECMaxScore).handle.IntValue;
 
-	if(g_Teams[CS_TEAM_T][ETRowWins] > g_ConVars[ECMaxStreak][ConVarValue])
-		g_Teams[CS_TEAM_T][ETCond] += g_Teams[CS_TEAM_T][ETRowWins]-g_ConVars[ECMaxStreak][ConVarValue];
-	else if(g_Teams[CS_TEAM_CT][ETRowWins] > g_ConVars[ECMaxStreak][ConVarValue])
-		g_Teams[CS_TEAM_CT][ETCond] += g_Teams[CS_TEAM_CT][ETRowWins]-g_ConVars[ECMaxStreak][ConVarValue];
+	if(g_Teams[CS_TEAM_T][ETRowWins] > PluginCvar(ECMaxStreak).handle.IntValue)
+		g_Teams[CS_TEAM_T][ETCond] += g_Teams[CS_TEAM_T][ETRowWins]-PluginCvar(ECMaxStreak).handle.IntValue;
+	else if(g_Teams[CS_TEAM_CT][ETRowWins] > PluginCvar(ECMaxStreak).handle.IntValue)
+		g_Teams[CS_TEAM_CT][ETCond] += g_Teams[CS_TEAM_CT][ETRowWins]-PluginCvar(ECMaxStreak).handle.IntValue;
 
 	if(g_Teams[CS_TEAM_T][ETSize] > g_Teams[CS_TEAM_CT][ETSize])
 		g_Teams[CS_TEAM_T][ETCond] += g_Teams[CS_TEAM_T][ETSize]-g_Teams[CS_TEAM_CT][ETSize];
@@ -812,7 +819,7 @@ TeamConditions() {
 	else if(Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] > Float:g_Teams[CS_TEAM_T][ETSumKDRatio])
 		++g_Teams[CS_TEAM_CT][ETCond];
 
-	if(IntMax(g_Teams[CS_TEAM_T][ETCond], g_Teams[CS_TEAM_CT][ETCond]) > g_ConVars[ECMaxCond][ConVarValue]) {
+	if(IntMax(g_Teams[CS_TEAM_T][ETCond], g_Teams[CS_TEAM_CT][ETCond]) > PluginCvar(ECMaxCond).handle.IntValue) {
 		if(g_Teams[CS_TEAM_T][ETCond] > g_Teams[CS_TEAM_CT][ETCond]) {
 			g_Wart[iTeamWinner] = CS_TEAM_T;
 			g_Wart[iTeamLoser] = CS_TEAM_CT;
@@ -842,7 +849,7 @@ GetKDInTeams() {
 	SetValueForTeamsF(ETSumKDRatio, 0.0);
 	GetScoreForPlayers();
 	sumMVP = float(GetMVPForPlayersAndSum());
-	checkMVP = bool:(Float:g_ConVars[ECMultiMVP][ConVarValue] >= 0.0 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1.0);
+	checkMVP = bool:(FloatCompare(PluginCvar(ECMultiMVP).handle.FloatValue, 0.0) != -1 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1.0);
 
 	for(i=1; i<=MaxClients; ++i) {
 		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot])
@@ -857,7 +864,7 @@ GetKDInTeams() {
 		g_Players[i][EPKDRatio] = GetPlayerPointsToKD(i) / FloatMax(GetDeathsToKD(g_Players[i][EPDeaths]), 0.1);
 
 		if(checkMVP) {
-			fTmp = Float:g_Players[i][EPKDRatio] + Float:g_Players[i][EPKDRatio] * (float(g_Players[i][EPMVP])/sumMVP + Float:g_ConVars[ECMultiMVP][ConVarValue]);
+			fTmp = Float:g_Players[i][EPKDRatio] + Float:g_Players[i][EPKDRatio] * (float(g_Players[i][EPMVP])/sumMVP + PluginCvar(ECMultiMVP).handle.FloatValue);
 			g_Players[i][EPKDRatio] = fTmp;
 		}
 
@@ -877,7 +884,7 @@ Float:GetPlayerPointsToKD(client) {
 		pointsF = GetKillsToKD(g_Players[client][EPKills]);
 	}
 	else {
-		switch(g_ConVars[ECTypePoints][ConVarValue]) {
+		switch(PluginCvar(ECTypePoints).handle.IntValue) {
 			case 1: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]);
 			case 2: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetScoreToKD(g_Players[client][EPScore]);
 			case 3: pointsF = GetKillsToKD(g_Players[client][EPKills]) + GetAssistsToKD(g_Players[client][EPAssists]) + GetScoreToKD(g_Players[client][EPScore]);
@@ -894,7 +901,7 @@ Float:GetTeamPointsToKD(team) {
 		pointsF = GetKillsToKD(g_Teams[team][ETKills]);
 	}
 	else {
-		switch(g_ConVars[ECTypePoints][ConVarValue]) {
+		switch(PluginCvar(ECTypePoints).handle.IntValue) {
 			case 1: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetAssistsToKD(g_Teams[team][ETAssists]);
 			case 2: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetScoreToKD(g_Teams[team][ETScore]);
 			case 3: pointsF = GetKillsToKD(g_Teams[team][ETKills]) + GetAssistsToKD(g_Teams[team][ETAssists]) + GetScoreToKD(g_Teams[team][ETScore]);
@@ -907,8 +914,8 @@ Float:GetTeamPointsToKD(team) {
 
 Float:GetKillsToKD(kills) {
 	new Float:killsF = float(kills);
-	if(Float:g_ConVars[ECMultiKills][ConVarValue] > 0.0) {
-		return killsF * Float:g_ConVars[ECMultiKills][ConVarValue];
+	if(FloatCompare(PluginCvar(ECMultiKills).handle.FloatValue, 0.0) == 1) {
+		return killsF * PluginCvar(ECMultiKills).handle.FloatValue;
 	}
 	return killsF;
 }
@@ -918,16 +925,16 @@ Float:GetAssistsToKD(assists) {
 		return 0.0;
 	}
 	new Float:assistsF = float(assists);
-	if(Float:g_ConVars[ECMultiAssists][ConVarValue] > 0.0) {
-		return assistsF * Float:g_ConVars[ECMultiAssists][ConVarValue];
+	if(FloatCompare(PluginCvar(ECMultiAssists).handle.FloatValue, 0.0) == 1) {
+		return assistsF * PluginCvar(ECMultiAssists).handle.FloatValue;
 	}
 	return assistsF;
 }
 
 Float:GetDeathsToKD(deaths) {
 	new Float:deathsF = float(deaths);
-	if(Float:g_ConVars[ECMultiDeaths][ConVarValue] > 0.0) {
-		return deathsF * Float:g_ConVars[ECMultiDeaths][ConVarValue];
+	if(FloatCompare(PluginCvar(ECMultiDeaths).handle.FloatValue, 0.0) == 1) {
+		return deathsF * PluginCvar(ECMultiDeaths).handle.FloatValue;
 	}
 	return deathsF;
 }
@@ -937,8 +944,8 @@ Float:GetScoreToKD(score) {
 		return 0.0;
 	}
 	new Float:scoreF = float(score);
-	if(Float:g_ConVars[ECMultiScore][ConVarValue] > 0.0) {
-		return scoreF * Float:g_ConVars[ECMultiScore][ConVarValue];
+	if(FloatCompare(PluginCvar(ECMultiScore).handle.FloatValue, 0.0) == 1) {
+		return scoreF * PluginCvar(ECMultiScore).handle.FloatValue;
 	}
 	return scoreF;
 }
