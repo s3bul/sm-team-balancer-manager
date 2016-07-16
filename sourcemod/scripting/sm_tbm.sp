@@ -436,16 +436,16 @@ public Action CommandJoinTeam(int client, const char[] command, int argc) {
 }
 
 void TBMShowTeamPanel(int client) {
-	if(g_Players[client][EPPanelTimer] != INVALID_HANDLE) CloseTimer(g_Players[client][EPPanelTimer]);
+	if(g_Players[client][EPPanelTimer] != INVALID_HANDLE) delete g_Players[client][EPPanelTimer];
 	g_Players[client][EPPanelTimer] = CreateTimer(0.8, ShowTeamPanel, GetClientSerial(client));
 }
 
 public Action ShowTeamPanel(Handle timer, any serial) {
-	new client = GetClientFromSerial(serial);
+	int client = GetClientFromSerial(serial);
 	if(client == 0 || g_Players[client][EPIsConnected] == false || g_Players[client][EPIsBot] == true || IsClientInGame(client) == false)
 		return;
 
-	CloseTimer(g_Players[client][EPPanelTimer]);
+	delete g_Players[client][EPPanelTimer];
 	ShowVGUIPanel(client, "team");
 }
 
@@ -496,8 +496,8 @@ public void EventRoundPreStartPre(Handle event, const char[] name, bool dontBroa
 	GetKDInTeams();
 	g_Teams[CS_TEAM_T][ETWins] = CS_GetTeamScore(CS_TEAM_T);
 	g_Teams[CS_TEAM_CT][ETWins] = CS_GetTeamScore(CS_TEAM_CT);
-	g_Teams[CS_TEAM_T][ETPoints] = Float:g_Teams[CS_TEAM_T][ETSumKDRatio] + (g_Teams[CS_TEAM_T][ETWins] * PluginCvar(ECMultiWins).handle.FloatValue) + (g_Teams[CS_TEAM_T][ETRowWins] * PluginCvar(ECMultiRowWins).handle.FloatValue);
-	g_Teams[CS_TEAM_CT][ETPoints] = Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] + (g_Teams[CS_TEAM_CT][ETWins] * PluginCvar(ECMultiWins).handle.FloatValue) + (g_Teams[CS_TEAM_CT][ETRowWins] * PluginCvar(ECMultiRowWins).handle.FloatValue);
+	g_Teams[CS_TEAM_T][ETPoints] = view(float, g_Teams[CS_TEAM_T][ETSumKDRatio]) + (g_Teams[CS_TEAM_T][ETWins] * PluginCvar(ECMultiWins).handle.FloatValue) + (g_Teams[CS_TEAM_T][ETRowWins] * PluginCvar(ECMultiRowWins).handle.FloatValue);
+	g_Teams[CS_TEAM_CT][ETPoints] = view(float, g_Teams[CS_TEAM_CT][ETSumKDRatio]) + (g_Teams[CS_TEAM_CT][ETWins] * PluginCvar(ECMultiWins).handle.FloatValue) + (g_Teams[CS_TEAM_CT][ETRowWins] * PluginCvar(ECMultiRowWins).handle.FloatValue);
 	TeamConditions();
 #if defined DEBUG_PLUGIN
 	LogToFile(g_PathDebug, "Połączeni gracze: %i (max: %i)", GetClientCount(), MaxClients);
@@ -510,9 +510,9 @@ public void EventRoundPreStartPre(Handle event, const char[] name, bool dontBroa
 		LogToFile(g_PathDebug, "Suma punktów drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETScore], g_Teams[CS_TEAM_CT][ETScore]);
 		LogToFile(g_PathDebug, "Suma MVP drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETMVP], g_Teams[CS_TEAM_CT][ETMVP]);
 	}
-	LogToFile(g_PathDebug, "KD drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETKDRatio], Float:g_Teams[CS_TEAM_CT][ETKDRatio]);
-	LogToFile(g_PathDebug, "Suma KD drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETSumKDRatio], Float:g_Teams[CS_TEAM_CT][ETSumKDRatio]);
-	LogToFile(g_PathDebug, "Punkty drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETPoints], Float:g_Teams[CS_TEAM_CT][ETPoints]);
+	LogToFile(g_PathDebug, "KD drużyn: TT - %.3f, CT - %.3f", view(float, g_Teams[CS_TEAM_T][ETKDRatio]), view(float, g_Teams[CS_TEAM_CT][ETKDRatio]));
+	LogToFile(g_PathDebug, "Suma KD drużyn: TT - %.3f, CT - %.3f", view(float, g_Teams[CS_TEAM_T][ETSumKDRatio]), view(float, g_Teams[CS_TEAM_CT][ETSumKDRatio]));
+	LogToFile(g_PathDebug, "Punkty drużyn: TT - %.3f, CT - %.3f", view(float, g_Teams[CS_TEAM_T][ETPoints]), view(float, g_Teams[CS_TEAM_CT][ETPoints]));
 	LogToFile(g_PathDebug, "Wygrane drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETWins], g_Teams[CS_TEAM_CT][ETWins]);
 	if(g_Teams[CS_TEAM_T][ETRowWins] > 0 || g_Teams[CS_TEAM_CT][ETRowWins] > 0) {
 		LogToFile(g_PathDebug, "Ostatnie %i rund/y zostały wygrane przez %s", g_Teams[CS_TEAM_T][ETRowWins] > 0 ? g_Teams[CS_TEAM_T][ETRowWins] : g_Teams[CS_TEAM_CT][ETRowWins], g_Teams[CS_TEAM_T][ETRowWins] > 0 ? "TT" : "CT");
@@ -679,7 +679,7 @@ void doTransfer() {
 
 	TBMPrintToChatAll("%t", "Transfer player", winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
 #if defined DEBUG_PLUGIN
-	LogToFile(g_PathDebug, "KD transferowanego gracza: %.3f", Float:g_Players[winner][EPKDRatio]);
+	LogToFile(g_PathDebug, "KD transferowanego gracza: %.3f", view(float, g_Players[winner][EPKDRatio]));
 	LogToFile(g_PathDebug, "%T", "Transfer player", LANG_SERVER, winnerName, (g_Wart[iTeamWinner] == CS_TEAM_T) ? "CT" : "TT");
 #endif
 
@@ -739,7 +739,7 @@ void doSwitch() {
 
 	TBMPrintToChatAll("%t", "Switch players", winnerName, loserName);
 #if defined DEBUG_PLUGIN
-	LogToFile(g_PathDebug, "KD zamienianych graczy: Winner - %.3f, Loser - %.3f", Float:g_Players[winner][EPKDRatio], Float:g_Players[loser][EPKDRatio]);
+	LogToFile(g_PathDebug, "KD zamienianych graczy: Winner - %.3f, Loser - %.3f", view(float, g_Players[winner][EPKDRatio]), view(float, g_Players[loser][EPKDRatio]));
 	LogToFile(g_PathDebug, "%T", "Switch players", LANG_SERVER, winnerName, loserName);
 #endif
 
@@ -750,26 +750,27 @@ void doSwitch() {
 	g_Players[loser][EPBlockTransfer] = view(float, g_Players[winner][EPBlockTransfer]);
 }
 
-ClearGame() {
+void ClearGame() {
 	g_Wart[iRoundNumber] = 0;
 	g_Wart[iLastSwitchRound] = 0;
 	SetValueForTeams(ETRowWins, 0);
 
-	for(new i=1; i<=MAXPLAYERS; ++i) {
+	for(int i=1; i<=MAXPLAYERS; ++i) {
 		ClearStatsForPlayer(i);
 	}
 }
 
-GetValidTargets(team, bool:deadonly = false) {
-	new num, i, Float:fGameTime = GetEngineTime();
+void GetValidTargets(int team, bool deadonly = false) {
+	int num, i;
+	float fGameTime = GetEngineTime();
 	for(i=1; i<=MaxClients; ++i) {
-		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot]) continue;
+		if(g_Players[i][EPIsConnected] == false || g_Players[i][EPIsBot] == true) continue;
 		if(g_Players[i][EPTeam] != team) continue;
-		if(Float:g_Players[i][EPBlockTransfer] > fGameTime) continue;
-		if(!IsClientInGame(i)) continue;
+		if(FloatCompare(view(float, g_Players[i][EPBlockTransfer]), fGameTime) == 1) continue;
+		if(IsClientInGame(i) == false) continue;
 
 		if(PluginCvar(ECImmunitySwitch).handle.BoolValue == true && (GetUserFlagBits(i) & PluginCvar(ECImmunityFlags).handle.Flags)) continue;
-		if(deadonly && IsPlayerAlive(i)) continue;
+		if(deadonly == true && IsPlayerAlive(i) == true) continue;
 
 		g_Teams[team][ETValidTargets][num++] = i;
 	}
@@ -777,7 +778,7 @@ GetValidTargets(team, bool:deadonly = false) {
 	g_Teams[team][ETNumTargets] = num;
 }
 
-TeamConditions() {
+void TeamConditions() {
 	g_Wart[bMaxSizeTeam] = false;
 
 	if(g_Teams[CS_TEAM_T][ETSize]-g_Teams[CS_TEAM_CT][ETSize] > PluginCvar(ECMaxDiff).handle.IntValue) {
@@ -810,14 +811,16 @@ TeamConditions() {
 	else if(g_Teams[CS_TEAM_CT][ETSize] > g_Teams[CS_TEAM_T][ETSize])
 		g_Teams[CS_TEAM_CT][ETCond] += g_Teams[CS_TEAM_CT][ETSize]-g_Teams[CS_TEAM_T][ETSize];
 
-	if(Float:g_Teams[CS_TEAM_T][ETKDRatio] > Float:g_Teams[CS_TEAM_CT][ETKDRatio])
+	int fcKDRatio = FloatCompare(view(float, g_Teams[CS_TEAM_T][ETKDRatio]), view(float, g_Teams[CS_TEAM_CT][ETKDRatio]));
+	if(fcKDRatio == 1)
 		++g_Teams[CS_TEAM_T][ETCond];
-	else if(Float:g_Teams[CS_TEAM_CT][ETKDRatio] > Float:g_Teams[CS_TEAM_T][ETKDRatio])
+	else if(fcKDRatio == -1)
 		++g_Teams[CS_TEAM_CT][ETCond];
 
-	if(Float:g_Teams[CS_TEAM_T][ETSumKDRatio] > Float:g_Teams[CS_TEAM_CT][ETSumKDRatio])
+	int fcSumKDRatio = FloatCompare(view(float, g_Teams[CS_TEAM_T][ETSumKDRatio]), view(float, g_Teams[CS_TEAM_CT][ETSumKDRatio]));
+	if(fcSumKDRatio == 1)
 		++g_Teams[CS_TEAM_T][ETCond];
-	else if(Float:g_Teams[CS_TEAM_CT][ETSumKDRatio] > Float:g_Teams[CS_TEAM_T][ETSumKDRatio])
+	else if(fcSumKDRatio == -1)
 		++g_Teams[CS_TEAM_CT][ETCond];
 
 	if(IntMax(g_Teams[CS_TEAM_T][ETCond], g_Teams[CS_TEAM_CT][ETCond]) > PluginCvar(ECMaxCond).handle.IntValue) {
@@ -840,8 +843,7 @@ TeamConditions() {
 	}
 }
 
-GetKDInTeams() {
-	decl i, Float:fTmp, Float:sumMVP, bool:checkMVP;
+void GetKDInTeams() {
 	SetValueForTeams(ETKills, 0);
 	SetValueForTeams(ETAssists, 0);
 	SetValueForTeams(ETDeaths, 0);
@@ -849,11 +851,11 @@ GetKDInTeams() {
 	SetValueForTeams(ETMVP, 0);
 	SetValueForTeamsF(ETSumKDRatio, 0.0);
 	GetScoreForPlayers();
-	sumMVP = float(GetMVPForPlayersAndSum());
-	checkMVP = bool:(FloatCompare(PluginCvar(ECMultiMVP).handle.FloatValue, 0.0) != -1 && g_Wart[eVersion] == Engine_CSGO && sumMVP > 1.0);
+	float fTmp, sumMVP = view(float, GetMVPForPlayersAndSum());
+	bool checkMVP = (FloatCompare(PluginCvar(ECMultiMVP).handle.FloatValue, 0.0) != -1 && g_Wart[eVersion] == Engine_CSGO && FloatCompare(sumMVP, 1.0) == 1);
 
-	for(i=1; i<=MaxClients; ++i) {
-		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot])
+	for(int i=1; i<=MaxClients; ++i) {
+		if(g_Players[i][EPIsConnected] == false || g_Players[i][EPIsBot] == true)
 			continue;
 
 		g_Teams[g_Players[i][EPTeam]][ETKills] += g_Players[i][EPKills];
@@ -864,12 +866,12 @@ GetKDInTeams() {
 
 		g_Players[i][EPKDRatio] = GetPlayerPointsToKD(i) / FloatMax(GetDeathsToKD(g_Players[i][EPDeaths]), 0.1);
 
-		if(checkMVP) {
-			fTmp = Float:g_Players[i][EPKDRatio] + Float:g_Players[i][EPKDRatio] * (float(g_Players[i][EPMVP])/sumMVP + PluginCvar(ECMultiMVP).handle.FloatValue);
+		if(checkMVP == true) {
+			fTmp = view(float, g_Players[i][EPKDRatio]) + view(float, g_Players[i][EPKDRatio]) * (view(float, g_Players[i][EPMVP])/sumMVP + PluginCvar(ECMultiMVP).handle.FloatValue);
 			g_Players[i][EPKDRatio] = fTmp;
 		}
 
-		fTmp = Float:g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] + Float:g_Players[i][EPKDRatio];
+		fTmp = view(float, g_Teams[g_Players[i][EPTeam]][ETSumKDRatio]) + view(float, g_Players[i][EPKDRatio]);
 		g_Teams[g_Players[i][EPTeam]][ETSumKDRatio] = fTmp;
 	}
 
@@ -879,8 +881,8 @@ GetKDInTeams() {
 	g_Teams[CS_TEAM_CT][ETKDRatio] = GetTeamPointsToKD(CS_TEAM_CT) / FloatMax(GetDeathsToKD(g_Teams[CS_TEAM_CT][ETDeaths]), 0.1);
 }
 
-Float:GetPlayerPointsToKD(client) {
-	decl Float:pointsF;
+float GetPlayerPointsToKD(int client) {
+	float pointsF;
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		pointsF = GetKillsToKD(g_Players[client][EPKills]);
 	}
@@ -896,8 +898,8 @@ Float:GetPlayerPointsToKD(client) {
 	return FloatMax(pointsF, 0.0);
 }
 
-Float:GetTeamPointsToKD(team) {
-	decl Float:pointsF;
+float GetTeamPointsToKD(int team) {
+	float pointsF;
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		pointsF = GetKillsToKD(g_Teams[team][ETKills]);
 	}
@@ -913,63 +915,63 @@ Float:GetTeamPointsToKD(team) {
 	return FloatMax(pointsF, 0.0);
 }
 
-Float:GetKillsToKD(kills) {
-	new Float:killsF = float(kills);
+float GetKillsToKD(int kills) {
+	float killsF = view(float, kills);
 	if(FloatCompare(PluginCvar(ECMultiKills).handle.FloatValue, 0.0) == 1) {
 		return killsF * PluginCvar(ECMultiKills).handle.FloatValue;
 	}
 	return killsF;
 }
 
-Float:GetAssistsToKD(assists) {
+float GetAssistsToKD(int assists) {
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		return 0.0;
 	}
-	new Float:assistsF = float(assists);
+	float assistsF = view(float, assists);
 	if(FloatCompare(PluginCvar(ECMultiAssists).handle.FloatValue, 0.0) == 1) {
 		return assistsF * PluginCvar(ECMultiAssists).handle.FloatValue;
 	}
 	return assistsF;
 }
 
-Float:GetDeathsToKD(deaths) {
-	new Float:deathsF = float(deaths);
+float GetDeathsToKD(int deaths) {
+	float deathsF = view(float, deaths);
 	if(FloatCompare(PluginCvar(ECMultiDeaths).handle.FloatValue, 0.0) == 1) {
 		return deathsF * PluginCvar(ECMultiDeaths).handle.FloatValue;
 	}
 	return deathsF;
 }
 
-Float:GetScoreToKD(score) {
+float GetScoreToKD(int score) {
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		return 0.0;
 	}
-	new Float:scoreF = float(score);
+	float scoreF = view(float, score);
 	if(FloatCompare(PluginCvar(ECMultiScore).handle.FloatValue, 0.0) == 1) {
 		return scoreF * PluginCvar(ECMultiScore).handle.FloatValue;
 	}
 	return scoreF;
 }
 
-GetScoreForPlayers() {
+void GetScoreForPlayers() {
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		return;
 	}
-	for(new i=1; i<=MaxClients; ++i) {
-		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
+	for(int i=1; i<=MaxClients; ++i) {
+		if(g_Players[i][EPIsConnected] == false || g_Players[i][EPIsBot] == true || IsClientInGame(i) == false)
 			continue;
 
 		g_Players[i][EPScore] = CS_GetClientContributionScore(i);
 	}
 }
 
-GetMVPForPlayersAndSum() {
+int GetMVPForPlayersAndSum() {
 	if(g_Wart[eVersion] != Engine_CSGO) {
 		return 0;
 	}
-	new sum, i;
+	int i, sum = 0;
 	for(i=1; i<=MaxClients; ++i) {
-		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
+		if(g_Players[i][EPIsConnected] == false || g_Players[i][EPIsBot] == true || IsClientInGame(i) == false)
 			continue;
 
 		g_Players[i][EPMVP] = CS_GetMVPCount(i);
@@ -978,47 +980,47 @@ GetMVPForPlayersAndSum() {
 	return sum;
 }
 
-GetCountPlayersInTeams() {
+int GetCountPlayersInTeams() {
 	SetValueForTeams(ETSize, 0);
 	SetValueForTeams(ETBotSize, 0);
 	SetValueForTeams(ETAdminSize, 0);
-	new i, num;
+	int i, num = 0;
 	for(i=1; i<=MaxClients; ++i) {
-		if(!g_Players[i][EPIsConnected] || !IsClientInGame(i))
+		if(g_Players[i][EPIsConnected] == false || IsClientInGame(i) == false)
 			continue;
 
 		++g_Teams[g_Players[i][EPTeam]][ETBotSize];
-		if(!g_Players[i][EPIsBot]) ++g_Teams[g_Players[i][EPTeam]][ETSize];
-		if(g_Players[i][EPIsAdmin]) ++g_Teams[g_Players[i][EPTeam]][ETAdminSize];
+		if(g_Players[i][EPIsBot] == false) ++g_Teams[g_Players[i][EPTeam]][ETSize];
+		if(g_Players[i][EPIsAdmin] == true) ++g_Teams[g_Players[i][EPTeam]][ETAdminSize];
 		++num;
 	}
 	return num;
 }
 
-IntMax(value1, value2) {
+int IntMax(int value1, int value2) {
 	if(value1 > value2) return value1;
 	return value2;
 }
 
-Float:FloatMax(Float:value1, Float:value2) {
-	if(value1 > value2) return value1;
+float FloatMax(float value1, float value2) {
+	if(FloatCompare(value1, value2) == 1) return value1;
 	return value2;
 }
 
-SetValueForTeams(eTeamData:eData, iVal) {
+void SetValueForTeams(eTeamData eData, int iVal) {
 	g_Teams[CS_TEAM_NONE][eData] = g_Teams[CS_TEAM_SPECTATOR][eData] = g_Teams[CS_TEAM_T][eData] = g_Teams[CS_TEAM_CT][eData] = iVal;
 }
 
-SetValueForTeamsF(eTeamData:eData, Float:fVal) {
-	g_Teams[CS_TEAM_NONE][eData] = g_Teams[CS_TEAM_SPECTATOR][eData] = g_Teams[CS_TEAM_T][eData] = g_Teams[CS_TEAM_CT][eData] = any:fVal;
+void SetValueForTeamsF(eTeamData eData, float fVal) {
+	g_Teams[CS_TEAM_NONE][eData] = g_Teams[CS_TEAM_SPECTATOR][eData] = g_Teams[CS_TEAM_T][eData] = g_Teams[CS_TEAM_CT][eData] = view(any, fVal);
 }
 
-ClearStatsForPlayer(client) {
+void ClearStatsForPlayer(int client) {
 	g_Players[client][EPKills] = g_Players[client][EPAssists] = g_Players[client][EPDeaths] = 0;
 }
 
-SwitchClientTeam(client) {
-	if(IsPlayerAlive(client)) {
+void SwitchClientTeam(int client) {
+	if(IsPlayerAlive(client) == true) {
 		CS_SwitchTeam(client, (g_Players[client][EPTeam] == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T);
 		CS_UpdateClientModel(client);
 	}
