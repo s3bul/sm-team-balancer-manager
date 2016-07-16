@@ -435,44 +435,44 @@ public Action CommandJoinTeam(int client, const char[] command, int argc) {
 	return Plugin_Continue;
 }
 
-void TBMShowTeamPanel(client) {
+void TBMShowTeamPanel(int client) {
 	if(g_Players[client][EPPanelTimer] != INVALID_HANDLE) CloseTimer(g_Players[client][EPPanelTimer]);
 	g_Players[client][EPPanelTimer] = CreateTimer(0.8, ShowTeamPanel, GetClientSerial(client));
 }
 
 public Action ShowTeamPanel(Handle timer, any serial) {
 	new client = GetClientFromSerial(serial);
-	if(!client || !g_Players[client][EPIsConnected] || g_Players[client][EPIsBot] || !IsClientInGame(client))
+	if(client == 0 || g_Players[client][EPIsConnected] == false || g_Players[client][EPIsBot] == true || IsClientInGame(client) == false)
 		return;
 
 	CloseTimer(g_Players[client][EPPanelTimer]);
 	ShowVGUIPanel(client, "team");
 }
 
-public EventPlayerTeam(Handle:event, const String:name[], bool:dontBroadcast) {
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+public void EventPlayerTeam(Handle event, const char[] name, bool dontBroadcast) {
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	g_Players[client][EPTeam] = GetEventInt(event, "team");
 }
 
-public EventPlayerDeath(Handle:event, const String:name[], bool:dontBroadcast) {
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(client && g_Players[client][EPIsConnected] && IsClientInGame(client)) g_Players[client][EPDeaths] = GetClientDeaths(client);
-	new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-	if(attacker && g_Players[attacker][EPIsConnected] && IsClientInGame(attacker)) g_Players[attacker][EPKills] = GetClientFrags(attacker);
+public void EventPlayerDeath(Handle event, const char[] name, bool dontBroadcast) {
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if(client > 0 && g_Players[client][EPIsConnected] == true && IsClientInGame(client) == true) g_Players[client][EPDeaths] = GetClientDeaths(client);
+	int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
+	if(attacker > 0 && g_Players[attacker][EPIsConnected] == true && IsClientInGame(attacker) == true) g_Players[attacker][EPKills] = GetClientFrags(attacker);
 	if(g_Wart[eVersion] == Engine_CSGO) {
-		new assister = GetClientOfUserId(GetEventInt(event, "assister"));
-		if(assister && g_Players[assister][EPIsConnected] && IsClientInGame(assister)) g_Players[assister][EPAssists] = CS_GetClientAssists(assister);
+		int assister = GetClientOfUserId(GetEventInt(event, "assister"));
+		if(assister > 0 && g_Players[assister][EPIsConnected] == true && IsClientInGame(assister) == true) g_Players[assister][EPAssists] = CS_GetClientAssists(assister);
 	}
 }
 
-public EventRoundEnd(Handle:event, const String:name[], bool:dontBroadcast) {
+public void EventRoundEnd(Handle event, const char[] name, bool dontBroadcast) {
 	if(GetEventInt(event, "reason") >= 15) {
 		ClearGame();
 		return;
 	}
 
-	new iWinner = GetEventInt(event, "winner");
-	new iLooser = (iWinner == CS_TEAM_T) ? CS_TEAM_CT : (iWinner == CS_TEAM_CT) ? CS_TEAM_T : CS_TEAM_NONE;
+	int iWinner = GetEventInt(event, "winner");
+	int iLooser = (iWinner == CS_TEAM_T) ? CS_TEAM_CT : (iWinner == CS_TEAM_CT) ? CS_TEAM_T : CS_TEAM_NONE;
 
 	++g_Wart[iRoundNumber];
 
@@ -488,7 +488,7 @@ public EventRoundEnd(Handle:event, const String:name[], bool:dontBroadcast) {
 	}
 }
 
-public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadcast) {
+public void EventRoundPreStartPre(Handle event, const char[] name, bool dontBroadcast) {
 	if(PluginCvar(ECEnabled).handle.BoolValue == false)
 		return;
 
@@ -514,7 +514,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 	LogToFile(g_PathDebug, "Suma KD drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETSumKDRatio], Float:g_Teams[CS_TEAM_CT][ETSumKDRatio]);
 	LogToFile(g_PathDebug, "Punkty drużyn: TT - %.3f, CT - %.3f", Float:g_Teams[CS_TEAM_T][ETPoints], Float:g_Teams[CS_TEAM_CT][ETPoints]);
 	LogToFile(g_PathDebug, "Wygrane drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETWins], g_Teams[CS_TEAM_CT][ETWins]);
-	if(g_Teams[CS_TEAM_T][ETRowWins] || g_Teams[CS_TEAM_CT][ETRowWins]) {
+	if(g_Teams[CS_TEAM_T][ETRowWins] > 0 || g_Teams[CS_TEAM_CT][ETRowWins] > 0) {
 		LogToFile(g_PathDebug, "Ostatnie %i rund/y zostały wygrane przez %s", g_Teams[CS_TEAM_T][ETRowWins] > 0 ? g_Teams[CS_TEAM_T][ETRowWins] : g_Teams[CS_TEAM_CT][ETRowWins], g_Teams[CS_TEAM_T][ETRowWins] > 0 ? "TT" : "CT");
 	}
 	LogToFile(g_PathDebug, "Punkty przewagi drużyn: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETCond], g_Teams[CS_TEAM_CT][ETCond]);
@@ -526,7 +526,7 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 	LogToFile(g_PathDebug, "================================================");
 #endif
 
-	if(!g_Wart[bMaxSizeTeam]) {
+	if(g_Wart[bMaxSizeTeam] == false) {
 		if(g_Wart[iRoundNumber] < PluginCvar(ECSwitchAfter).handle.IntValue)
 			return;
 
@@ -542,12 +542,12 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 
 	TBMPrintToChatAll("%t", "TBM Info");
 
-	if(g_Wart[iTeamWinner]) {
+	if(g_Wart[iTeamWinner] > CS_TEAM_NONE) {
 #if defined DEBUG_PLUGIN
 		LogToFile(g_PathDebug, "=== TRANSFER ===");
 		LogToFile(g_PathDebug, "Ilość graczy do transferu: TT - %i, CT - %i", g_Teams[CS_TEAM_T][ETNumTargets], g_Teams[CS_TEAM_CT][ETNumTargets]);
 #endif
-		if(g_Wart[bMaxSizeTeam]) {
+		if(g_Wart[bMaxSizeTeam] == true) {
 #if defined DEBUG_PLUGIN
 			LogToFile(g_PathDebug, "=== ZBYT DUŻA RÓŻNICA WIELKOŚCI DRUŻYN ===");
 #endif
@@ -581,8 +581,8 @@ public EventRoundPreStartPre(Handle:event, const String:name[], bool:dontBroadca
 	}
 }
 
-TBMPrintToChat(client, const String:sMessage[], any:...) {
-	decl String:sTxt[192];
+void TBMPrintToChat(int client, const char[] sMessage, any ...) {
+	char sTxt[192];
 
 	SetGlobalTransTarget(client);
 	VFormat(sTxt, sizeof(sTxt), sMessage, 3);
@@ -590,11 +590,11 @@ TBMPrintToChat(client, const String:sMessage[], any:...) {
 	PrintToChat(client, "[TBM] %s", sTxt);
 }
 
-TBMPrintToChatAll(const String:sMessage[], any:...) {
-	decl String:sTxt[192];
+void TBMPrintToChatAll(const char[] sMessage, any ...) {
+	char sTxt[192];
 
-	for(new i=1; i<=MaxClients; ++i) {
-		if(!g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
+	for(int i=1; i<=MaxClients; ++i) {
+		if(g_Players[i][EPIsConnected] == false || g_Players[i][EPIsBot] == true || IsClientInGame(i) == false)
 			continue;
 
 		SetGlobalTransTarget(i);
@@ -604,11 +604,11 @@ TBMPrintToChatAll(const String:sMessage[], any:...) {
 	}
 }
 
-TBMPrintToChatAdmins(const String:sMessage[], any:...) {
-	decl String:sTxt[192];
+void TBMPrintToChatAdmins(const char[] sMessage, any ...) {
+	char sTxt[192];
 
-	for(new i=1; i<=MaxClients; ++i) {
-		if(!g_Players[i][EPIsAdmin] || !g_Players[i][EPIsConnected] || g_Players[i][EPIsBot] || !IsClientInGame(i))
+	for(int i=1; i<=MaxClients; ++i) {
+		if(g_Players[i][EPIsAdmin] == false || g_Players[i][EPIsConnected] == false || g_Players[i][EPIsBot] == true || IsClientInGame(i) == false)
 			continue;
 
 		SetGlobalTransTarget(i);
@@ -618,7 +618,7 @@ TBMPrintToChatAdmins(const String:sMessage[], any:...) {
 	}
 }
 
-doTransfer() {
+void doTransfer() {
 	if(g_Teams[g_Wart[iTeamWinner]][ETSize] <= 1) {
 		TBMPrintToChatAll("%t %t", "No move player", "need players win");
 #if defined DEBUG_PLUGIN
@@ -634,32 +634,32 @@ doTransfer() {
 		return;
 	}
 
-	decl toLoser, w, Float:closestScore;
-	new winner;
+	int toLoser, w, winner = 0;
+	float closestScore;
 
-	if(g_Wart[bMaxSizeTeam]) {
-		closestScore = Float:g_Teams[g_Wart[iTeamWinner]][ETPoints];
+	if(g_Wart[bMaxSizeTeam] == true) {
+		closestScore = view(float, g_Teams[g_Wart[iTeamWinner]][ETPoints]);
 		for(w=0; w<g_Teams[g_Wart[iTeamWinner]][ETNumTargets]; ++w) {
 			toLoser = g_Teams[g_Wart[iTeamWinner]][ETValidTargets][w];
-			if(Float:g_Players[toLoser][EPKDRatio] < closestScore) {
-				closestScore = Float:g_Players[toLoser][EPKDRatio];
+			if(view(float, g_Players[toLoser][EPKDRatio]) < closestScore) {
+				closestScore = view(float, g_Players[toLoser][EPKDRatio]);
 				winner = toLoser;
 			}
 		}
 	}
 	else {
-		decl Float:myScore;
-		closestScore = FloatAbs(Float:g_Teams[g_Wart[iTeamWinner]][ETPoints] - Float:g_Teams[g_Wart[iTeamLoser]][ETPoints]);
+		float myScore;
+		closestScore = FloatAbs(view(float, g_Teams[g_Wart[iTeamWinner]][ETPoints]) - view(float, g_Teams[g_Wart[iTeamLoser]][ETPoints]));
 		for(w=0; w<g_Teams[g_Wart[iTeamWinner]][ETNumTargets]; ++w) {
 			toLoser = g_Teams[g_Wart[iTeamWinner]][ETValidTargets][w];
-			myScore = FloatAbs((Float:g_Teams[g_Wart[iTeamWinner]][ETPoints]-Float:g_Players[toLoser][EPKDRatio]) - (Float:g_Teams[g_Wart[iTeamLoser]][ETPoints]+Float:g_Players[toLoser][EPKDRatio]));
+			myScore = FloatAbs((view(float, g_Teams[g_Wart[iTeamWinner]][ETPoints])-view(float, g_Players[toLoser][EPKDRatio])) - (view(float, g_Teams[g_Wart[iTeamLoser]][ETPoints])+view(float, g_Players[toLoser][EPKDRatio])));
 			if(myScore < closestScore) {
 				closestScore = myScore;
 				winner = toLoser;
 			}
 		}
 	}
-	if(!winner || !g_Players[winner][EPIsConnected] || !IsClientInGame(winner)) {
+	if(winner == 0 || g_Players[winner][EPIsConnected] == false || IsClientInGame(winner) == false) {
 		TBMPrintToChatAll("%t", "No target");
 #if defined DEBUG_PLUGIN
 		LogToFile(g_PathDebug, "=== %T ===", "No target", LANG_SERVER);
@@ -669,7 +669,7 @@ doTransfer() {
 
 	g_Wart[iLastSwitchRound] = g_Wart[iRoundNumber];
 
-	decl String:winnerName[MAX_NAME_LENGTH];
+	char winnerName[MAX_NAME_LENGTH];
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 
 	if(PluginCvar(ECLimitAdmins).handle.IntValue > -1 && g_Teams[CS_TEAM_T][ETAdminSize]+g_Teams[CS_TEAM_CT][ETAdminSize] > PluginCvar(ECLimitAdmins).handle.IntValue) {
@@ -688,7 +688,7 @@ doTransfer() {
 	g_Players[winner][EPBlockTransfer] = GetEngineTime() + PluginCvar(ECPlayerFreq).handle.FloatValue;
 }
 
-doSwitch() {
+void doSwitch() {
 	if(g_Teams[g_Wart[iTeamWinner]][ETSize] == 0 || g_Teams[g_Wart[iTeamLoser]][ETSize] == 0) {
 		TBMPrintToChatAll("%t %t", "No switch players", "need players");
 #if defined DEBUG_PLUGIN
@@ -704,13 +704,13 @@ doSwitch() {
 		return;
 	}
 
-	decl Float:myScore, toLoser, toWinner, w, l;
-	new winner, loser, Float:closestScore = FloatAbs(Float:g_Teams[g_Wart[iTeamWinner]][ETPoints] - Float:g_Teams[g_Wart[iTeamLoser]][ETPoints]);
+	int toLoser, toWinner, w, l, winner = 0, loser = 0;
+	float myScore, closestScore = FloatAbs(view(float, g_Teams[g_Wart[iTeamWinner]][ETPoints]) - view(float, g_Teams[g_Wart[iTeamLoser]][ETPoints]));
 	for(w=0; w<g_Teams[g_Wart[iTeamWinner]][ETNumTargets]; ++w) {
 		toLoser = g_Teams[g_Wart[iTeamWinner]][ETValidTargets][w];
 		for(l=0; l<g_Teams[g_Wart[iTeamLoser]][ETNumTargets]; ++l) {
 			toWinner = g_Teams[g_Wart[iTeamLoser]][ETValidTargets][l];
-			myScore = FloatAbs((Float:g_Teams[g_Wart[iTeamWinner]][ETPoints]+Float:g_Players[toWinner][EPKDRatio]-Float:g_Players[toLoser][EPKDRatio]) - (Float:g_Teams[g_Wart[iTeamLoser]][ETPoints]+Float:g_Players[toLoser][EPKDRatio]-Float:g_Players[toWinner][EPKDRatio]));
+			myScore = FloatAbs((view(float, g_Teams[g_Wart[iTeamWinner]][ETPoints])+view(float, g_Players[toWinner][EPKDRatio])-view(float, g_Players[toLoser][EPKDRatio])) - (view(float, g_Teams[g_Wart[iTeamLoser]][ETPoints])+view(float, g_Players[toLoser][EPKDRatio])-view(float, g_Players[toWinner][EPKDRatio])));
 			if(myScore < closestScore) {
 				closestScore = myScore;
 				winner = toLoser;
@@ -718,7 +718,7 @@ doSwitch() {
 			}
 		}
 	}
-	if(!winner || !loser || !g_Players[winner][EPIsConnected] || !g_Players[loser][EPIsConnected] || !IsClientInGame(winner) || !IsClientInGame(loser)) {
+	if(winner == 0 || loser == 0 || g_Players[winner][EPIsConnected] == false || g_Players[loser][EPIsConnected] == false || IsClientInGame(winner) == false || IsClientInGame(loser) == false) {
 		TBMPrintToChatAll("%t", "No target");
 #if defined DEBUG_PLUGIN
 		LogToFile(g_PathDebug, "=== %T ===", "No target", LANG_SERVER);
@@ -728,7 +728,7 @@ doSwitch() {
 
 	g_Wart[iLastSwitchRound] = g_Wart[iRoundNumber];
 
-	decl String:winnerName[MAX_NAME_LENGTH], String:loserName[MAX_NAME_LENGTH];
+	char winnerName[MAX_NAME_LENGTH], loserName[MAX_NAME_LENGTH];
 	GetClientName(winner, winnerName, MAX_NAME_LENGTH);
 	GetClientName(loser, loserName, MAX_NAME_LENGTH);
 
