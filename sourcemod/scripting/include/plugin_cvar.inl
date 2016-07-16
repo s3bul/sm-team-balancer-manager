@@ -4,6 +4,17 @@
  * 	ECEnabled,
  * 	ECLimit
  * }
+ * 
+ * W pluginie musi się znaleźć metoda
+ * public void OnConVarChange(ConVar convar, char[] oldValue, char[] newValue) {
+ * 	for(int i=0,iCvars=view_as<int>(eCvars); i<iCvars; ++i) {
+ * 		eCvars cvarId = view_as<eCvars>(i);
+ * 		if(convar == PluginCvar(cvarId).handle) {
+ * 			PluginCvar(cvarId).SetPrev(oldValue);
+ * 			break;
+ * 		}
+ * 	}
+ * }
  */
 #define MAX_CVAR_LENGTH 128
 
@@ -13,11 +24,11 @@ char g_ConVarsPrevValue[eCvars][MAX_CVAR_LENGTH];
 
 methodmap PluginCvar {
 	public PluginCvar(eCvars cvarindex) {
-		return view(PluginCvar, cvarindex);
+		return view_as<PluginCvar>(cvarindex);
 	}
 	property eCvars index {
 		public get() {
-			return view(eCvars, this);
+			return view_as<eCvars>(this);
 		}
 	}
 	property ConVar handle {
@@ -33,10 +44,10 @@ methodmap PluginCvar {
 	}
 	property bool BoolLast {
 		public get() {
-			return bool(StringToInt(g_ConVarsLastValue[this.index]));
+			return view_as<bool>(StringToInt(g_ConVarsLastValue[this.index]));
 		}
 		public set(bool value) {
-			IntToString(int(value), g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH);
+			IntToString(view_as<int>(value), g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH);
 		}
 	}
 	property int IntLast {
@@ -65,10 +76,10 @@ methodmap PluginCvar {
 	}
 	property bool BoolPrev {
 		public get() {
-			return bool(StringToInt(g_ConVarsPrevValue[this.index]));
+			return view_as<bool>(StringToInt(g_ConVarsPrevValue[this.index]));
 		}
 		public set(bool value) {
-			IntToString(int(value), g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH);
+			IntToString(view_as<int>(value), g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH);
 		}
 	}
 	property int IntPrev {
@@ -111,6 +122,6 @@ methodmap PluginCvar {
 		return (this.handle.BoolValue != this.BoolPrev || this.handle.IntValue != this.IntPrev || FloatCompare(this.handle.FloatValue, this.FloatPrev) != 0 || this.handle.Flags != this.FlagPrev);
 	}
 	public int CheckToggle() {
-		return int(this.handle.BoolValue) - int(this.BoolPrev);
+		return view_as<int>(this.handle.BoolValue) - view_as<int>(this.BoolPrev);
 	}
 }
