@@ -12,6 +12,7 @@
 #define DEBUG_PLUGIN
 
 #define int(%1) view_as<int>(%1)
+#define bool(%1) view_as<bool>(%1)
 #define view(%1,%2) view_as<%1>(%2)
 #define MAX_CVAR_LENGTH 128
 
@@ -81,7 +82,7 @@ methodmap PluginCvar {
 	}
 	property bool BoolLast {
 		public get() {
-			return view(bool, StringToInt(g_ConVarsLastValue[this.index]));
+			return bool(StringToInt(g_ConVarsLastValue[this.index]));
 		}
 		public set(bool value) {
 			IntToString(int(value), g_ConVarsLastValue[this.index], MAX_CVAR_LENGTH);
@@ -113,7 +114,7 @@ methodmap PluginCvar {
 	}
 	property bool BoolPrev {
 		public get() {
-			return view(bool, StringToInt(g_ConVarsPrevValue[this.index]));
+			return bool(StringToInt(g_ConVarsPrevValue[this.index]));
 		}
 		public set(bool value) {
 			IntToString(int(value), g_ConVarsPrevValue[this.index], MAX_CVAR_LENGTH);
@@ -347,7 +348,7 @@ public void OnConVarChange(ConVar convar, char[] oldValue, char[] newValue) {
 	}
 }
 
-public void OnClientDisconnect_Post(client) {
+public void OnClientDisconnect_Post(int client) {
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPIsBot] = false;
 	g_Players[client][EPIsConnected] = false;
@@ -355,16 +356,16 @@ public void OnClientDisconnect_Post(client) {
 	g_Players[client][EPPanelTimer] = INVALID_HANDLE;
 }
 
-public void OnClientPutInServer(client) {
+public void OnClientPutInServer(int client) {
 	g_Players[client][EPTeam] = CS_TEAM_NONE;
 	g_Players[client][EPBlockTransfer] = GetEngineTime() + PluginCvar(ECPlayerTime).handle.FloatValue;
 	g_Players[client][EPIsBot] = IsFakeClient(client);
 	g_Players[client][EPIsConnected] = true;
-	new AdminId:adminId = GetUserAdmin(client);
-	g_Players[client][EPIsAdmin] = bool:(adminId != INVALID_ADMIN_ID && GetAdminFlag(adminId, Admin_Generic));
+	AdminId adminId = GetUserAdmin(client);
+	g_Players[client][EPIsAdmin] = (adminId != INVALID_ADMIN_ID && GetAdminFlag(adminId, Admin_Generic));
 }
 
-public Action:CommandJoinTeam(client, const String:command[], argc) {
+public Action CommandJoinTeam(int client, const char[] command, int argc) {
 	if(PluginCvar(ECEnabled).handle.BoolValue == false || PluginCvar(ECLimitJoin).handle.BoolValue == false)
 		return Plugin_Continue;
 
@@ -383,18 +384,18 @@ public Action:CommandJoinTeam(client, const String:command[], argc) {
 	if(g_Teams[CS_TEAM_T][ETSize]+g_Teams[CS_TEAM_CT][ETSize] < PluginCvar(ECLimitMin).handle.IntValue)
 		return Plugin_Continue;
 
-	decl String:text[32];
+	char text[32];
 	if(GetCmdArgString(text, sizeof(text)) < 1)
 		return Plugin_Continue;
 
-	new startidx = 0;
+	int startidx = 0;
 	if(text[strlen(text)-1] == '"') {
 		text[strlen(text)-1] = '\0';
 		startidx = 1;
 	}
 
-	new iNewTeam = StringToInt(text[startidx]);
-	new iOldTeam = g_Players[client][EPTeam];
+	int iNewTeam = StringToInt(text[startidx]);
+	int iOldTeam = g_Players[client][EPTeam];
 
 	if(iNewTeam == iOldTeam) {
 		TBMPrintToChat(client, "%t", "Join the same team");
@@ -405,7 +406,7 @@ public Action:CommandJoinTeam(client, const String:command[], argc) {
 	if(iNewTeam < CS_TEAM_T)
 		return Plugin_Continue;
 
-	if(Float:g_Players[client][EPBlockTransfer] > GetEngineTime() && iOldTeam >= CS_TEAM_T) {
+	if(view(float, g_Players[client][EPBlockTransfer]) > GetEngineTime() && iOldTeam >= CS_TEAM_T) {
 		TBMPrintToChat(client, "%t", "Stay team");
 		TBMShowTeamPanel(client);
 		return Plugin_Handled;
@@ -424,7 +425,7 @@ public Action:CommandJoinTeam(client, const String:command[], argc) {
 		return Plugin_Handled;
 	}
 
-	new iOpTeam = (iNewTeam == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T;
+	int iOpTeam = (iNewTeam == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T;
 	if(g_Teams[iNewTeam][ETSize]-g_Teams[iOpTeam][ETSize] >= PluginCvar(ECMaxDiff).handle.IntValue) {
 		TBMPrintToChat(client, "%t", "Max diff join");
 		TBMShowTeamPanel(client);
@@ -434,12 +435,12 @@ public Action:CommandJoinTeam(client, const String:command[], argc) {
 	return Plugin_Continue;
 }
 
-TBMShowTeamPanel(client) {
+void TBMShowTeamPanel(client) {
 	if(g_Players[client][EPPanelTimer] != INVALID_HANDLE) CloseTimer(g_Players[client][EPPanelTimer]);
 	g_Players[client][EPPanelTimer] = CreateTimer(0.8, ShowTeamPanel, GetClientSerial(client));
 }
 
-public Action:ShowTeamPanel(Handle:timer, any:serial) {
+public Action ShowTeamPanel(Handle timer, any serial) {
 	new client = GetClientFromSerial(serial);
 	if(!client || !g_Players[client][EPIsConnected] || g_Players[client][EPIsBot] || !IsClientInGame(client))
 		return;
